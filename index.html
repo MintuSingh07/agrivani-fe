@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriVani - Farmer Authentication Portal</title>
+  
+  <!-- Google Font: Assistant (400, 500, 600, 700, 800) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Unified Page Layout -->
+  <main class="auth-page-wrapper">
+    <div class="auth-card">
+
+      <!-- Integrated Header (Brand + Language Switcher) -->
+      <header class="auth-header">
+        <div class="brand-wrapper">
+          <div class="brand-icon-box" aria-hidden="true">
+            <!-- Sprout Icon -->
+            <svg width="26" height="26" viewBox="0 0 36 36" fill="none">
+              <path d="M6 30C6 27.2386 11.3726 25 18 25C24.6274 25 30 27.2386 30 30C30 30 26 32 18 32C10 32 6 30 6 30Z" fill="#8C6239" opacity="0.9"/>
+              <path d="M18 26V15" stroke="#7CB342" stroke-width="3" stroke-linecap="round"/>
+              <path d="M18 19C13 19 8 15 9 10C14 9 18 13 18 19Z" fill="#8BC34A"/>
+              <path d="M18 15C22.5 15 27 11.5 26 7C21.5 6 18 9.5 18 15Z" fill="#689F38"/>
+            </svg>
+          </div>
+          <div class="brand-text-col">
+            <span class="brand-title">AgriVani</span>
+            <span class="brand-tagline">Smart Agricultural Platform</span>
+          </div>
+        </div>
+
+        <!-- Language Selector Button -->
+        <button class="lang-btn" onclick="openLangModal()" aria-label="Change Language">
+          <span class="lang-globe">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </span>
+          <span class="lang-btn-text">English</span>
+          <span class="lang-arrow">▼</span>
+        </button>
+      </header>
+
+      <!-- Segmented Tab Navigation -->
+      <div class="segmented-tabs-container" role="tablist">
+        <button class="tab-btn active" id="tabSignIn" role="tab" aria-selected="true" data-i18n="signInTab" onclick="switchTab('signin')">Sign In</button>
+        <button class="tab-btn" id="tabSignUp" role="tab" aria-selected="false" data-i18n="signUpTab" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: SIGN IN VIEW                       -->
+      <!-- ========================================== -->
+      <div class="auth-form-wrapper active-form" id="viewSignIn">
+        <div class="hero-text-block">
+          <h1 class="hero-title" data-i18n="welcomeBack">Welcome Back</h1>
+          <p class="hero-subtitle" data-i18n="signInSub">Sign in to continue to AgriVani</p>
+        </div>
+
+        <form class="auth-form" id="formSignIn" onsubmit="return false;">
+          <!-- Mobile Number Input Group -->
+          <div class="form-group">
+            <label class="form-label" for="signinMobile" data-i18n="mobileNumber">Mobile Number</label>
+            <div class="mobile-input-group">
+              <span class="country-prefix">+91</span>
+              <input 
+                type="tel" 
+                id="signinMobile" 
+                class="mobile-input-field" 
+                placeholder="Mobile number" 
+                data-i18n="mobilePlaceholder" 
+                maxlength="10" 
+                inputmode="numeric"
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Password Input Group -->
+          <div class="form-group">
+            <div class="label-row">
+              <label class="form-label" for="signinPassword" data-i18n="password">Password</label>
+              <a href="javascript:void(0)" class="forgot-link" data-i18n="forgotPassword" onclick="openForgotPasswordModal()">Forgot Password?</a>
+            </div>
+            <div class="password-input-group">
+              <input 
+                type="password" 
+                id="signinPassword" 
+                class="input-box" 
+                placeholder="Enter password" 
+                data-i18n="enterPassword" 
+                required
+              >
+              <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('signinPassword', this)" aria-label="Toggle password visibility">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary CTA Button -->
+          <button type="submit" class="primary-btn" data-i18n="continueBtn">
+            <span>Continue →</span>
+          </button>
+
+          <!-- OR Divider -->
+          <div class="or-divider" aria-hidden="true">
+            <span data-i18n="orSignInWith">OR SIGN IN WITH</span>
+          </div>
+
+          <!-- Secondary OTP Button -->
+          <button type="button" class="secondary-btn" onclick="openOtpModal(document.getElementById('signinMobile').value)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="otp-phone-icon">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span data-i18n="signInWithOtp">Sign In with OTP</span>
+          </button>
+        </form>
+
+        <!-- Bottom Switch Link -->
+        <p class="footer-text">
+          <span data-i18n="newToAgriVani">New to AgriVani?</span>
+          <a href="javascript:void(0)" class="footer-link-bold" data-i18n="createAccountLink" onclick="switchTab('signup')">Create Account</a>
+        </p>
+
+        <!-- Security Trust Indicator -->
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trust-lock-svg">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span data-i18n="securityText">Your information is secure</span>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: SIGN UP VIEW                       -->
+      <!-- ========================================== -->
+      <div class="auth-form-wrapper" id="viewSignUp">
+        <div class="hero-text-block">
+          <h1 class="hero-title" data-i18n="createAccount">Create Account</h1>
+          <p class="hero-subtitle" data-i18n="signUpSub">Join AgriVani and farm smarter</p>
+        </div>
+
+        <form class="auth-form" id="formSignUp" onsubmit="return false;">
+          <!-- Full Name Input -->
+          <div class="form-group">
+            <label class="form-label" for="signupName" data-i18n="fullName">Full Name</label>
+            <input 
+              type="text" 
+              id="signupName" 
+              class="input-box" 
+              placeholder="Enter your full name" 
+              data-i18n="fullNamePlaceholder" 
+              required
+            >
+          </div>
+
+          <!-- Mobile Number Input Group -->
+          <div class="form-group">
+            <label class="form-label" for="signupMobile" data-i18n="mobileNumber">Mobile Number</label>
+            <div class="mobile-input-group">
+              <span class="country-prefix">+91</span>
+              <input 
+                type="tel" 
+                id="signupMobile" 
+                class="mobile-input-field" 
+                placeholder="Mobile number" 
+                data-i18n="mobilePlaceholder" 
+                maxlength="10" 
+                inputmode="numeric"
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Create Password Input Group -->
+          <div class="form-group">
+            <label class="form-label" for="signupPassword" data-i18n="createPassword">Create Password</label>
+            <div class="password-input-group">
+              <input 
+                type="password" 
+                id="signupPassword" 
+                class="input-box" 
+                placeholder="Minimum 6 characters" 
+                data-i18n="minChars" 
+                required
+              >
+              <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('signupPassword', this)" aria-label="Toggle password visibility">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary CTA Button -->
+          <button type="submit" class="primary-btn" data-i18n="createAccountBtn" style="margin-top: 6px;">
+            <span>Create Account</span>
+          </button>
+        </form>
+
+        <!-- Bottom Switch Link -->
+        <p class="footer-text" style="margin-top: 18px;">
+          <span data-i18n="alreadyHaveAccount">Already have an account?</span>
+          <a href="javascript:void(0)" class="footer-link-bold" data-i18n="signInLink" onclick="switchTab('signin')">Sign In</a>
+        </p>
+
+        <!-- Security Trust Indicator -->
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trust-lock-svg">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span data-i18n="securityText">Your information is secure</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: OTP VERIFICATION                   -->
+  <!-- ========================================== -->
+  <div class="custom-modal-backdrop" id="otpModal" role="dialog" aria-modal="true" aria-labelledby="otpTitle">
+    <div class="custom-modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title" id="otpTitle" data-i18n="otpTitle">Verify Mobile Number</h2>
+        <button class="modal-close-btn" onclick="closeOtpModal()" aria-label="Close modal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <p style="font-size: 14.5px; color: var(--text-subtitle); line-height: 1.45;">
+        Enter the 4-digit code sent to <strong id="otpTargetMobile" style="color: var(--text-title);">+91 98765 43210</strong>
+      </p>
+
+      <div class="otp-digit-inputs">
+        <input type="tel" maxlength="1" class="otp-box otp-digit-1" autofocus inputmode="numeric">
+        <input type="tel" maxlength="1" class="otp-box otp-digit-2" inputmode="numeric">
+        <input type="tel" maxlength="1" class="otp-box otp-digit-3" inputmode="numeric">
+        <input type="tel" maxlength="1" class="otp-box otp-digit-4" inputmode="numeric">
+      </div>
+
+      <button class="primary-btn" data-i18n="verifyBtn" onclick="closeOtpModal(); showToast('OTP Verified! Welcome to AgriVani.');">
+        Verify &amp; Proceed
+      </button>
+
+      <div style="text-align: center; font-size: 14px; color: var(--text-subtitle);">
+        Didn't receive code? <a href="javascript:void(0)" class="forgot-link" onclick="showToast('New OTP sent!')">Resend OTP (0:45)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: REGIONAL LANGUAGE SELECTOR (12 LANGUAGES) -->
+  <!-- ========================================== -->
+  <div class="custom-modal-backdrop" id="langModal" role="dialog" aria-modal="true">
+    <div class="custom-modal-box lang-modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Select Language / भाषा चुनें</h2>
+        <button class="modal-close-btn" onclick="closeLangModal()" aria-label="Close modal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <p style="font-size: 14px; color: var(--text-subtitle); margin-bottom: 4px;">
+        Choose your regional language for farmer-friendly guidance:
+      </p>
+      
+      <div class="lang-grid-modal" id="langModalGrid">
+        <!-- 1. English -->
+        <button class="lang-card-btn active" data-lang="en" onclick="selectModalLanguage('en')">
+          <span class="lang-card-native">English</span>
+          <span class="lang-card-sub">English</span>
+        </button>
+
+        <!-- 2. Hindi -->
+        <button class="lang-card-btn" data-lang="hi" onclick="selectModalLanguage('hi')">
+          <span class="lang-card-native">हिन्दी</span>
+          <span class="lang-card-sub">Hindi</span>
+        </button>
+
+        <!-- 3. Marathi -->
+        <button class="lang-card-btn" data-lang="mr" onclick="selectModalLanguage('mr')">
+          <span class="lang-card-native">मराठी</span>
+          <span class="lang-card-sub">Marathi</span>
+        </button>
+
+        <!-- 4. Punjabi -->
+        <button class="lang-card-btn" data-lang="pa" onclick="selectModalLanguage('pa')">
+          <span class="lang-card-native">ਪੰਜਾਬੀ</span>
+          <span class="lang-card-sub">Punjabi</span>
+        </button>
+
+        <!-- 5. Odia / Oriya -->
+        <button class="lang-card-btn" data-lang="or" onclick="selectModalLanguage('or')">
+          <span class="lang-card-native">ଓଡ଼ିଆ</span>
+          <span class="lang-card-sub">Odia (Oriya)</span>
+        </button>
+
+        <!-- 6. Gujarati -->
+        <button class="lang-card-btn" data-lang="gu" onclick="selectModalLanguage('gu')">
+          <span class="lang-card-native">ગુજરાતી</span>
+          <span class="lang-card-sub">Gujarati</span>
+        </button>
+
+        <!-- 7. Rajasthani -->
+        <button class="lang-card-btn" data-lang="raj" onclick="selectModalLanguage('raj')">
+          <span class="lang-card-native">राजस्थानी</span>
+          <span class="lang-card-sub">Rajasthani</span>
+        </button>
+
+        <!-- 8. Tamil -->
+        <button class="lang-card-btn" data-lang="ta" onclick="selectModalLanguage('ta')">
+          <span class="lang-card-native">தமிழ்</span>
+          <span class="lang-card-sub">Tamil</span>
+        </button>
+
+        <!-- 9. Telugu -->
+        <button class="lang-card-btn" data-lang="te" onclick="selectModalLanguage('te')">
+          <span class="lang-card-native">తెలుగు</span>
+          <span class="lang-card-sub">Telugu</span>
+        </button>
+
+        <!-- 10. Nepali -->
+        <button class="lang-card-btn" data-lang="ne" onclick="selectModalLanguage('ne')">
+          <span class="lang-card-native">नेपाली</span>
+          <span class="lang-card-sub">Nepali</span>
+        </button>
+
+        <!-- 11. Assamese -->
+        <button class="lang-card-btn" data-lang="as" onclick="selectModalLanguage('as')">
+          <span class="lang-card-native">অসমীয়া</span>
+          <span class="lang-card-sub">Assamese</span>
+        </button>
+
+        <!-- 12. Bengali -->
+        <button class="lang-card-btn" data-lang="bn" onclick="selectModalLanguage('bn')">
+          <span class="lang-card-native">বাংলা</span>
+          <span class="lang-card-sub">Bengali</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: FORGOT PASSWORD                     -->
+  <!-- ========================================== -->
+  <div class="custom-modal-backdrop" id="forgotModal" role="dialog" aria-modal="true">
+    <div class="custom-modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Reset Password</h2>
+        <button class="modal-close-btn" onclick="closeForgotPasswordModal()" aria-label="Close modal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <p style="font-size: 14.5px; color: var(--text-subtitle); line-height: 1.45;">
+        Enter your registered mobile number and we will send you an OTP to reset your password.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label" for="resetMobile">Mobile Number</label>
+        <div class="mobile-input-group">
+          <span class="country-prefix">+91</span>
+          <input type="tel" id="resetMobile" class="mobile-input-field" placeholder="Mobile number" maxlength="10">
+        </div>
+      </div>
+
+      <button class="primary-btn" onclick="closeForgotPasswordModal(); openOtpModal(document.getElementById('resetMobile').value);">
+        Send Reset OTP →
+      </button>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div class="toast-message" id="globalToast" role="alert" aria-live="polite">
+    Notification
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
