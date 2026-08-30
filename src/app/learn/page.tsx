@@ -16,9 +16,11 @@ import {
   ArrowLeft,
   Sparkles,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import BottomNavigation from "@/components/BottomNavigation";
 
 export default function LearnPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"videos" | "courses" | "articles">("videos");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -95,16 +97,16 @@ export default function LearnPage() {
             </Link>
             <div>
               <h1 className="text-base font-semibold text-gray-900 leading-tight">
-                AgriVani Learn
+                {t.learnTitle}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                Offline Guides, Videos & Masterclasses
+                {t.downloadOfflineBtn}
               </p>
             </div>
           </div>
 
           <span className="bg-emerald-100 text-[#1B4D2E] text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-300/60">
-            Works Offline
+            {t.downloadOfflineBtn}
           </span>
         </header>
 
@@ -118,7 +120,7 @@ export default function LearnPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search remedies, crop diseases, courses..."
+              placeholder={t.searchCoursesPlaceholder}
               className="w-full bg-white pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#2D7A4D] transition shadow-xs"
             />
             <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -137,7 +139,7 @@ export default function LearnPage() {
               }`}
             >
               <Video className="w-3.5 h-3.5" />
-              <span>Video Guides</span>
+              <span>{t.videosTab}</span>
             </button>
 
             <button
@@ -149,7 +151,7 @@ export default function LearnPage() {
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Courses</span>
+              <span>{t.coursesTab}</span>
             </button>
 
             <button
@@ -161,7 +163,7 @@ export default function LearnPage() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Advisories</span>
+              <span>{t.articlesTab}</span>
             </button>
           </div>
 

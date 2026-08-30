@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   CropDetail,
   getCropVisual,
@@ -24,6 +25,7 @@ import {
 function CropDetailsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const cropId = searchParams.get("id");
 
   const [crop, setCrop] = useState<CropDetail | null>(null);
@@ -116,7 +118,7 @@ function CropDetailsContent() {
             </Link>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                {crop.name} Details
+                {crop.name} {t.cropDetailsTitle}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
                 Variety: {crop.variety}

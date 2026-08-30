@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Activity, User } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface NavItem {
   name: string;
@@ -14,11 +15,12 @@ interface NavItem {
 export default function AdminBottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const navItems: NavItem[] = [
-    { name: "Home", href: "/admin", icon: Home },
-    { name: "Disease Mapping", href: "/admin/disease-mapping", icon: Activity },
-    { name: "Profile", href: "/admin/profile", icon: User },
+    { name: t.navHome, href: "/admin", icon: Home },
+    { name: t.navDiseaseMapping, href: "/admin/disease-mapping", icon: Activity },
+    { name: t.navProfile, href: "/admin/profile", icon: User },
   ];
 
   // Helper to map pathname to index

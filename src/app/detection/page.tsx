@@ -20,9 +20,11 @@ import {
   Info,
   Lightbulb,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function DetectionPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -201,10 +203,10 @@ export default function DetectionPage() {
             </Link>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                Crop Disease Detection
+                {t.diseaseDetectionTitle}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                Scan leaf to identify problem and remedy
+                {t.scanLeafPrompt}
               </p>
             </div>
           </div>
@@ -215,7 +217,7 @@ export default function DetectionPage() {
               className="flex items-center gap-1.5 text-xs font-semibold text-[#144733] bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200 active:scale-95 transition"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Retake</span>
+              <span>{t.retakeScanBtn}</span>
             </button>
           )}
         </header>

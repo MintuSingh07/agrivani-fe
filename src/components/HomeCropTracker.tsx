@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Flower2,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   GiWheat,
   GiCorn,
@@ -174,6 +175,7 @@ const DEFAULT_CROPS: CropDetail[] = [
 ];
 
 export default function HomeCropTracker() {
+  const { t } = useLanguage();
   const [crops, setCrops] = useState<CropDetail[]>(DEFAULT_CROPS);
 
   // Load from localStorage
@@ -210,10 +212,10 @@ export default function HomeCropTracker() {
           </div>
           <div>
             <h2 className="text-xs font-bold text-gray-900 tracking-tight">
-              My Crops &amp; Field Tracker
+              {t.cropGrowthTracker}
             </h2>
             <p className="text-[10px] text-gray-500 font-normal">
-              {crops.length} Registered {crops.length === 1 ? "Crop" : "Crops"} Active
+              {crops.length} {t.activeCrops}
             </p>
           </div>
         </div>
@@ -224,7 +226,7 @@ export default function HomeCropTracker() {
           className="flex items-center gap-1 bg-[#144733] hover:bg-[#1B4D2E] text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-xs active:scale-95 transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] text-[#95CF3A]" />
-          <span>Add Crop</span>
+          <span>{t.addNewCrop}</span>
         </Link>
       </div>
 
@@ -275,7 +277,7 @@ export default function HomeCropTracker() {
               <div className="space-y-1 bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
                 <div className="flex items-center justify-between text-[10px] text-gray-600 font-medium">
                   <span className="text-gray-800 font-semibold">{crop.stage}</span>
-                  <span className="font-semibold text-gray-700">{crop.daysPlanted} Days Sown</span>
+                  <span className="font-semibold text-gray-700">{crop.daysPlanted} {t.daysSown}</span>
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
@@ -292,7 +294,7 @@ export default function HomeCropTracker() {
                   {crop.irrigation}
                 </span>
                 <span className="text-[#144733] font-semibold flex items-center gap-0.5 group-hover:underline">
-                  View Advisory Details →
+                  {t.viewAlertDetails} →
                 </span>
               </div>
             </Link>

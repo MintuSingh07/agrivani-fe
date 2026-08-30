@@ -741,6 +741,7 @@ export default function AuthPage() {
       if (chosen) {
         localStorage.setItem("agrivani_app_language_name", `${chosen.english} / ${chosen.name}`);
       }
+      window.dispatchEvent(new Event("agrivani_language_changed"));
     }
   };
 
@@ -840,6 +841,7 @@ export default function AuthPage() {
         
         const existingProfile = localStorage.getItem("agrivani_farmer_profile");
         const profileData = existingProfile ? JSON.parse(existingProfile) : {};
+        profileData.role = "farmer";
         profileData.name = farmerName;
         profileData.phone = `+91 ${mobile || "98765 43210"}`;
         profileData.farmSize = farmSize || "4.5";
@@ -847,6 +849,7 @@ export default function AuthPage() {
         profileData.irrigation = irrigation || "Canal & Borewell";
         if (!profileData.location) profileData.location = "Purba Bardhaman, West Bengal";
         localStorage.setItem("agrivani_farmer_profile", JSON.stringify(profileData));
+        localStorage.setItem("agrivani_logged_in_user", JSON.stringify({ role: "farmer", ...profileData }));
       }
 
       // Redirect to Farmer Home
@@ -876,23 +879,28 @@ export default function AuthPage() {
 
       const officerDisplayName = fullName.trim() || "Dr. Subhashish Roy";
       const officerData = {
+        role: "officer",
         name: officerDisplayName,
         id: officerId.trim() || "WB-AGRI-2025-884",
         email: officerEmail.trim() || "s.roy@wb.gov.in",
         phone: mobile ? `+91 ${mobile}` : "+91 94340 12890",
         assignedArea: assignedArea || "Purba Bardhaman (Burdwan)",
-        role: "Senior Block Agriculture Officer (BAO)",
+        location: assignedArea || "Purba Bardhaman (Burdwan)",
+        designation: "Senior Block Agriculture Officer (BAO)",
         department: "Department of Agriculture, Govt. of West Bengal",
       };
 
       if (typeof window !== "undefined") {
         localStorage.setItem("agrivani_user_role", "officer");
         localStorage.setItem("agrivani_officer_name", officerDisplayName);
+        localStorage.setItem("agrivani_admin_name", officerDisplayName);
         localStorage.setItem("agrivani_officer_profile", JSON.stringify(officerData));
+        localStorage.setItem("agrivani_admin_profile", JSON.stringify(officerData));
+        localStorage.setItem("agrivani_logged_in_user", JSON.stringify(officerData));
       }
 
-      // Redirect to Officer Home Portal
-      router.push("/officer");
+      // Redirect to Officer / Admin Home Portal
+      router.push("/admin");
     }
   };
 
@@ -1447,11 +1455,6 @@ export default function AuthPage() {
                   type="submit"
                   className="mt-1 h-[48px] bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(45,122,77,0.22)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
-                  </svg>
                   <span>{t.signInOfficerBtn}</span>
                 </button>
               </>
@@ -1601,12 +1604,6 @@ export default function AuthPage() {
                   type="submit"
                   className="mt-1 h-[48px] bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(45,122,77,0.22)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <line x1="19" y1="8" x2="19" y2="14"/>
-                    <line x1="22" y1="11" x2="16" y2="11"/>
-                  </svg>
                   <span>{t.registerOfficerBtn}</span>
                 </button>
               </>

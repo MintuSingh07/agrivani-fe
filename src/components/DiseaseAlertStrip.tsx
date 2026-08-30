@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DiseaseAlertStripProps {
   diseaseName?: string;
@@ -12,6 +13,8 @@ export default function DiseaseAlertStrip({
   diseaseName = "Leaf Blast Fungus",
   targetHref = "/alerts/leaf-blast",
 }: DiseaseAlertStripProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="w-full bg-red-50 border border-red-200/90 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-xs">
       {/* Alert Icon & Concise Message */}
@@ -21,16 +24,16 @@ export default function DiseaseAlertStrip({
         </div>
 
         <p className="text-xs text-red-900 font-normal leading-tight line-clamp-2">
-          High probability of <span className="font-semibold text-red-950">{diseaseName}</span> outbreak in this weather.
+          {t.warningAlertDesc}
         </p>
       </div>
 
       {/* Know More Action Button */}
       <Link
         href={targetHref}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0"
+        className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap"
       >
-        <span>Know more</span>
+        <span>{t.viewAlertDetails}</span>
         <ChevronRight className="w-3.5 h-3.5" />
       </Link>
     </div>

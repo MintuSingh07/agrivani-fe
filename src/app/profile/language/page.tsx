@@ -1,62 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Search, Globe } from "lucide-react";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Check, Search, Globe, Sparkles } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { SupportedLanguage } from "@/i18n/translations";
 
-interface LanguageOption {
-  id: string;
-  name: string;
-  nativeName: string;
-  region: string;
-}
-
-const LANGUAGES: LanguageOption[] = [
-  { id: "hi", name: "Hindi", nativeName: "हिन्दी", region: "North & Central India" },
-  { id: "en", name: "English", nativeName: "English", region: "Universal / All India" },
-  { id: "mr", name: "Marathi", nativeName: "मराठी", region: "Maharashtra" },
-  { id: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ", region: "Punjab & Haryana" },
-  { id: "or", name: "Oriya (Odia)", nativeName: "ଓଡ଼ିଆ", region: "Odisha" },
-  { id: "gu", name: "Gujarati", nativeName: "ગુજરાતી", region: "Gujarat" },
-  { id: "raj", name: "Rajasthani", nativeName: "राजस्थानी", region: "Rajasthan" },
-  { id: "ta", name: "Tamil", nativeName: "தமிழ்", region: "Tamil Nadu" },
-  { id: "te", name: "Telugu", nativeName: "తెలుగు", region: "Andhra Pradesh & Telangana" },
-  { id: "ne", name: "Nepali", nativeName: "नेपाली", region: "Sikkim & Northern Hill States" },
-  { id: "as", name: "Assamese", nativeName: "অসমীয়া", region: "Assam & North East" },
-  { id: "bn", name: "Bengali", nativeName: "বাংলা", region: "West Bengal & Tripura" },
-];
-
-export default function LanguageSelectionPage() {
+function LanguageSelectionContent() {
   const router = useRouter();
-  const [selectedLang, setSelectedLang] = useState<string>("en");
+  const searchParams = useSearchParams();
+  const fromParam = searchParams?.get("from");
+  const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  useEffect(() => {
+  const getTargetProfileRoute = () => {
+    if (fromParam === "admin") return "/admin/profile";
+    if (fromParam === "farmer") return "/profile";
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("agrivani_app_language");
-      if (saved) {
-        setSelectedLang(saved);
+      const role = localStorage.getItem("agrivani_user_role");
+      if (role === "officer" || role === "admin") {
+        return "/admin/profile";
       }
     }
-  }, []);
-
-  const handleSelect = (langId: string) => {
-    setSelectedLang(langId);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("agrivani_app_language", langId);
-      const chosen = LANGUAGES.find((l) => l.id === langId);
-      if (chosen) {
-        localStorage.setItem("agrivani_app_language_name", `${chosen.name} / ${chosen.nativeName}`);
-      }
-    }
-    // Instant smooth transition back to profile
-    setTimeout(() => {
-      router.push("/profile");
-    }, 250);
+    return "/profile";
   };
 
-  const filteredLanguages = LANGUAGES.filter(
+  const handleSelect = (langId: string) => {
+    setLanguage(langId as SupportedLanguage);
+    const target = getTargetProfileRoute();
+    setTimeout(() => {
+      router.push(target);
+    }, 200);
+  };
+
+  const handleBack = () => {
+    const target = getTargetProfileRoute();
+    router.push(target);
+  };
+
+  const filteredLanguages = supportedLanguages.filter(
     (lang) =>
       lang.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lang.nativeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,18 +52,20 @@ export default function LanguageSelectionPage() {
         {/* Top Header */}
         <header className="px-4 py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link
-              href="/profile"
-              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition"
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label="Go Back"
+              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />
-            </Link>
+            </button>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                App Language
+                {t.appLanguage}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                Choose your preferred language (12 Languages)
+                Choose your preferred language ({supportedLanguages.length} Languages)
               </p>
             </div>
           </div>
@@ -100,73 +84,102 @@ export default function LanguageSelectionPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search language (e.g. Hindi, தமிழ், বাংলা)..."
-              className="w-full bg-white pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#144733] transition shadow-xs"
+              placeholder="Search language or region..."
+              className="w-full pl-9.5 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144733]/30 focus:border-[#144733] transition shadow-xs"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
-          {/* Language Cards Grid / List */}
-          <div className="space-y-2 flex-1 overflow-y-auto pb-4">
+          {/* Languages Grid / List */}
+          <div className="space-y-2 flex-1">
             {filteredLanguages.map((lang) => {
-              const isSelected = selectedLang === lang.id;
+              const isSelected = language === lang.id;
               return (
                 <button
                   key={lang.id}
                   onClick={() => handleSelect(lang.id)}
-                  type="button"
-                  className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between cursor-pointer active:scale-[0.99] ${
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all duration-150 active:scale-[0.99] cursor-pointer ${
                     isSelected
-                      ? "bg-emerald-50/90 border-[#144733] shadow-xs ring-1 ring-[#144733]/20"
-                      : "bg-white border-gray-200 hover:bg-gray-50/80 hover:border-gray-300"
+                      ? "bg-[#144733] text-white border-[#144733] shadow-md shadow-[#144733]/20"
+                      : "bg-white text-gray-800 border-gray-200 hover:border-gray-300 hover:bg-gray-50/80 shadow-xs"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold transition-colors ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
                         isSelected
-                          ? "bg-[#144733] text-white"
-                          : "bg-gray-100 text-gray-700"
+                          ? "bg-white/20 text-white border-white/30"
+                          : "bg-emerald-50 text-[#144733] border-emerald-200"
                       }`}
                     >
                       {lang.nativeName.slice(0, 2)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-900">
-                          {lang.name}
-                        </span>
-                        <span className="text-xs font-medium text-emerald-800 bg-emerald-100/60 px-1.5 py-0.2 rounded text-[11px]">
+                        <span className="font-bold text-sm leading-tight">
                           {lang.nativeName}
                         </span>
+                        <span
+                          className={`text-xs ${
+                            isSelected ? "text-emerald-200" : "text-gray-500"
+                          }`}
+                        >
+                          ({lang.name})
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-500 font-normal block mt-0.5">
+                      <p
+                        className={`text-[11px] mt-0.5 ${
+                          isSelected ? "text-emerald-100/90" : "text-gray-400"
+                        }`}
+                      >
                         {lang.region}
-                      </span>
+                      </p>
                     </div>
                   </div>
 
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                      isSelected
-                        ? "bg-[#144733] border-[#144733] text-white"
-                        : "border-gray-300 bg-white"
-                    }`}
-                  >
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                  <div className="shrink-0 flex items-center gap-2">
+                    {isSelected ? (
+                      <div className="w-6 h-6 rounded-full bg-white text-[#144733] flex items-center justify-center shadow-xs">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                    )}
                   </div>
                 </button>
               );
             })}
+          </div>
 
-            {filteredLanguages.length === 0 && (
-              <div className="text-center py-10 text-gray-500 text-xs">
-                No languages match &ldquo;{searchQuery}&rdquo;
-              </div>
-            )}
+          {/* Quick Notice */}
+          <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-[11.5px] text-[#144733] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 shrink-0 text-[#2D7A4D]" />
+            <span>Translations update instantly across all app screens, AI voice, and crop advisories.</span>
           </div>
 
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LanguageSelectionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FDFFF1] flex items-center justify-center text-xs text-gray-500">
+          Loading language settings...
+        </div>
+      }
+    >
+      <LanguageSelectionContent />
+    </Suspense>
   );
 }

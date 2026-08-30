@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Sprout, Droplets, ShieldCheck, ChevronRight } from "lucide-react";
 import { CropDetail, getCropVisual } from "@/components/HomeCropTracker";
+import { useLanguage } from "@/context/LanguageContext";
 
 const DEFAULT_CROPS: CropDetail[] = [
   {
@@ -35,6 +36,7 @@ const DEFAULT_CROPS: CropDetail[] = [
 ];
 
 export default function CropsOverviewPage() {
+  const { t } = useLanguage();
   const [crops, setCrops] = useState<CropDetail[]>(DEFAULT_CROPS);
   const [activeTab, setActiveTab] = useState<"current" | "past">("current");
 
@@ -67,10 +69,10 @@ export default function CropsOverviewPage() {
             </Link>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                My Crops &amp; Fields
+                {t.myCropsTitle}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                {crops.length} Active Field Tracks
+                {crops.length} {t.activeCrops}
               </p>
             </div>
           </div>
@@ -80,7 +82,7 @@ export default function CropsOverviewPage() {
             className="flex items-center gap-1 bg-[#144733] hover:bg-[#1B4D2E] text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs active:scale-95 transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5] text-[#95CF3A]" />
-            <span>Add Crop</span>
+            <span>{t.addNewCrop}</span>
           </Link>
         </header>
 
@@ -97,7 +99,7 @@ export default function CropsOverviewPage() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Current Crops ({crops.length})
+              {t.currentCropsTab} ({crops.length})
             </button>
             <button
               onClick={() => setActiveTab("past")}
@@ -107,7 +109,7 @@ export default function CropsOverviewPage() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Harvested / Past
+              {t.pastCropsTab}
             </button>
           </div>
 
@@ -154,7 +156,7 @@ export default function CropsOverviewPage() {
                     <div className="space-y-1 bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
                       <div className="flex items-center justify-between text-[10px] text-gray-600 font-medium">
                         <span className="text-gray-800 font-semibold">{crop.stage}</span>
-                        <span className="font-semibold text-gray-700">{crop.daysPlanted} Days Sown</span>
+                        <span className="font-semibold text-gray-700">{crop.daysPlanted} {t.daysSown}</span>
                       </div>
                       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
@@ -170,7 +172,7 @@ export default function CropsOverviewPage() {
                         {crop.irrigation}
                       </span>
                       <span className="text-[#144733] font-semibold flex items-center gap-0.5 group-hover:underline">
-                        View Details →
+                        {t.viewAlertDetails} →
                       </span>
                     </div>
                   </Link>
@@ -178,9 +180,14 @@ export default function CropsOverviewPage() {
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center space-y-2 shadow-xs">
-              <p className="text-xs font-semibold text-gray-700">No past harvest cycles recorded yet.</p>
-              <p className="text-[11px] text-gray-400">Completed crop yields will show here after harvest.</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+                <Sprout className="w-6 h-6" />
+              </div>
+              <h3 className="text-xs font-bold text-gray-700">{t.pastCropsTab}</h3>
+              <p className="text-[11px] text-gray-400">
+                Completed crop seasons will be archived here.
+              </p>
             </div>
           )}
 

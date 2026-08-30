@@ -20,6 +20,7 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   CropDetail,
   getCropVisual,
@@ -188,12 +189,11 @@ const ACRE_PRESETS = ["1.0", "2.0", "3.0", "5.0", "10.0"];
 
 export default function AddCropPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   // Search & Filter State
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Crop Selection State
   const [selectedCropName, setSelectedCropName] = useState("Rice (Paddy)");
   const [customName, setCustomName] = useState("");
   const [variety, setVariety] = useState("Pusa Basmati 1121");
@@ -332,17 +332,17 @@ export default function AddCropPage() {
             </Link>
             <div>
               <h1 className="text-sm font-bold text-gray-900 leading-tight">
-                Add Crop &amp; Field Details
+                {t.addCropTitle}
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                Step-by-step crop tracker setup
+                {t.stage} &amp; {t.landAreaLabel}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1 bg-emerald-50 text-[#144733] px-2.5 py-1 rounded-full border border-emerald-200 text-[11px] font-semibold">
             <Sprout className="w-3.5 h-3.5" />
-            <span>New Crop</span>
+            <span>{t.addNewCrop}</span>
           </div>
         </header>
 
@@ -819,7 +819,7 @@ export default function AddCropPage() {
               href="/"
               className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-2xl transition active:scale-95 cursor-pointer text-center"
             >
-              Cancel
+              {t.cancelBtn}
             </Link>
             
             <button
@@ -836,7 +836,7 @@ export default function AddCropPage() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-[#95CF3A]" />
-                  <span>Save &amp; Start Crop Tracking →</span>
+                  <span>{t.saveCropBtn} →</span>
                 </>
               )}
             </button>

@@ -15,8 +15,10 @@ import {
   Layers,
 } from "lucide-react";
 import { FARMERS_DATA } from "@/data/farmers";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminFarmerCards() {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredFarmers = FARMERS_DATA.filter((farmer) => {
@@ -42,15 +44,15 @@ export default function AdminFarmerCards() {
             </div>
             <div>
               <h2 className="text-base font-bold text-gray-900 leading-tight">
-                Registered Farmers
+                {t.farmerDetailsHeading}
               </h2>
               <p className="text-xs text-gray-500 font-medium">
-                {filteredFarmers.length} active farmer profiles
+                {filteredFarmers.length} {t.activeCrops}
               </p>
             </div>
           </div>
           <span className="text-[11px] font-semibold bg-[#144733]/10 text-[#144733] px-2.5 py-1 rounded-full">
-            Admin View
+            {t.officerPortalTitle.split(" ")[0]}
           </span>
         </div>
 

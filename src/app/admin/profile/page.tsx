@@ -15,15 +15,22 @@ import {
   X,
   Pencil,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminProfilePage() {
-  const [selectedLanguageName, setSelectedLanguageName] = useState("Telugu / తెలుగు");
+  const { t, currentLanguageInfo } = useLanguage();
+  const [selectedLanguageName, setSelectedLanguageName] = useState("English / हिन्दी");
   const [showEditModal, setShowEditModal] = useState(false);
 
   const [adminProfile, setAdminProfile] = useState({
-    name: "Zara Patel",
-    phone: "+91 98765 43210",
-    location: "Sawojajar, East Java",
+    name: "Dr. Subhashish Roy",
+    role: "Senior Block Agriculture Officer (BAO)",
+    designation: "Senior Block Agriculture Officer (BAO)",
+    id: "WB-AGRI-2025-884",
+    email: "s.roy@wb.gov.in",
+    phone: "+91 94340 12890",
+    location: "Purba Bardhaman, West Bengal",
+    department: "Department of Agriculture, Govt. of West Bengal",
   });
 
   const [editForm, setEditForm] = useState({ ...adminProfile });
@@ -31,14 +38,18 @@ export default function AdminProfilePage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedLang = localStorage.getItem("agrivani_app_language_name");
-      if (savedLang) setSelectedLanguageName(savedLang);
+      if (savedLang) {
+        setSelectedLanguageName(savedLang);
+      } else if (currentLanguageInfo) {
+        setSelectedLanguageName(`${currentLanguageInfo.name} / ${currentLanguageInfo.nativeName}`);
+      }
 
-      const savedAdmin = localStorage.getItem("agrivani_admin_profile");
+      const savedAdmin = localStorage.getItem("agrivani_officer_profile") || localStorage.getItem("agrivani_admin_profile");
       if (savedAdmin) {
         try {
           const parsed = JSON.parse(savedAdmin);
-          setAdminProfile(parsed);
-          setEditForm(parsed);
+          setAdminProfile((prev) => ({ ...prev, ...parsed }));
+          setEditForm((prev) => ({ ...prev, ...parsed }));
         } catch {}
       }
     }
@@ -49,7 +60,9 @@ export default function AdminProfilePage() {
     setAdminProfile(editForm);
     if (typeof window !== "undefined") {
       localStorage.setItem("agrivani_admin_profile", JSON.stringify(editForm));
+      localStorage.setItem("agrivani_officer_profile", JSON.stringify(editForm));
       localStorage.setItem("agrivani_admin_name", editForm.name);
+      localStorage.setItem("agrivani_officer_name", editForm.name);
     }
     setShowEditModal(false);
   };
@@ -70,10 +83,10 @@ export default function AdminProfilePage() {
             </Link>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                Admin Profile
+                Officer &amp; Admin Profile
               </h1>
               <p className="text-[11px] text-gray-500 font-normal">
-                Account & App Settings
+                Agricultural Department Portal
               </p>
             </div>
           </div>
@@ -93,20 +106,26 @@ export default function AdminProfilePage() {
         {/* Profile Content Body */}
         <div className="p-4 space-y-4 flex-1">
           
-          {/* User Identity Card */}
+          {/* Officer Identity Card */}
           <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-xs flex items-center justify-between gap-3">
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 border-2 border-[#144733]/30 flex items-center justify-center text-[#144733] shrink-0 shadow-xs">
-                <User className="w-7 h-7 stroke-[2.2]" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 border-2 border-[#144733]/30 flex items-center justify-center text-[#144733] shrink-0 shadow-xs text-xl font-bold">
+                🏛️
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-gray-900 leading-snug truncate">
+                  <h2 className="text-sm font-bold text-gray-900 leading-snug truncate">
                     {adminProfile.name}
                   </h2>
+                  <span className="text-[10px] font-bold text-[#2D7A4D] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    {adminProfile.id}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5 truncate">
+                <p className="text-[11px] text-emerald-800 font-medium truncate mt-0.5">
+                  {adminProfile.designation || adminProfile.role}
+                </p>
+                <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-1 truncate">
                   <Phone className="w-3 h-3 text-gray-400 shrink-0" />
                   <span>{adminProfile.phone}</span>
                 </div>
@@ -133,23 +152,13 @@ export default function AdminProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-xs divide-y divide-gray-100 overflow-hidden">
             
             {/* 1. App Language Option */}
-            <div
-              onClick={() => {
-                const nextLang = selectedLanguageName.includes("Telugu")
-                  ? "English / हिन्दी"
-                  : selectedLanguageName.includes("English")
-                  ? "Tamil / தமிழ்"
-                  : "Telugu / తెలుగు";
-                setSelectedLanguageName(nextLang);
-                if (typeof window !== "undefined") {
-                  localStorage.setItem("agrivani_app_language_name", nextLang);
-                }
-              }}
+            <Link
+              href="/profile/language?from=admin"
               className="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition active:bg-gray-100"
             >
               <div className="flex items-center gap-2.5">
                 <Globe className="w-4 h-4 text-[#144733]" />
-                <span className="text-xs font-semibold text-gray-800">App Language</span>
+                <span className="text-xs font-semibold text-gray-800">{t.appLanguage}</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -157,7 +166,7 @@ export default function AdminProfilePage() {
                 </span>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
               </div>
-            </div>
+            </Link>
 
             {/* 2. Weather & Pest Alerts Option */}
             <Link
@@ -166,7 +175,7 @@ export default function AdminProfilePage() {
             >
               <div className="flex items-center gap-2.5">
                 <Bell className="w-4 h-4 text-[#144733]" />
-                <span className="text-xs font-semibold text-gray-800">Weather & Pest Alerts</span>
+                <span className="text-xs font-semibold text-gray-800">{t.weatherPestAlerts}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -175,18 +184,19 @@ export default function AdminProfilePage() {
             </Link>
 
             {/* 3. Recent Videos Option */}
-            <div
+            <Link
+              href="/profile/recent-videos"
               className="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition active:bg-gray-100"
             >
               <div className="flex items-center gap-2.5">
                 <Video className="w-4 h-4 text-[#144733]" />
-                <span className="text-xs font-semibold text-gray-800">Recent Videos</span>
+                <span className="text-xs font-semibold text-gray-800">{t.recentVideos}</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
-                <span className="text-[10px] text-gray-400">4 watched</span>
+                <span className="text-[10px] text-gray-400">4</span>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Logout Button */}
@@ -195,7 +205,7 @@ export default function AdminProfilePage() {
             className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 py-3 rounded-2xl text-xs font-semibold border border-red-200 transition active:scale-98 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
-            <span>Log Out</span>
+            <span>{t.logOutBtn}</span>
           </Link>
         </div>
 

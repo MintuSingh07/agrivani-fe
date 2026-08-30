@@ -231,7 +231,7 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
       if (onLoginSuccess) {
         onLoginSuccess({ role: 'officer', name: fullName || "Officer", officerId, officerEmail, assignedArea });
       } else if (typeof window !== 'undefined') {
-        window.location.href = "/officer";
+        window.location.href = "/admin";
       }
     }
   };

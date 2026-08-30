@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Sprout, BookOpen, User } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface NavItem {
   name: string;
@@ -14,18 +15,19 @@ interface NavItem {
 export default function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const navItems: NavItem[] = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Detect", href: "/detection", icon: Sprout },
-    { name: "Learn", href: "/learn", icon: BookOpen },
-    { name: "Profile", href: "/profile", icon: User },
+    { name: t.navHome, href: "/", icon: Home },
+    { name: t.navCrops, href: "/crops", icon: Sprout },
+    { name: t.navLearn, href: "/learn", icon: BookOpen },
+    { name: t.navProfile, href: "/profile", icon: User },
   ];
 
   // Helper to map pathname to index
   const getIndexFromPath = (path: string | null) => {
     if (!path || path === "/") return 0;
-    if (path.startsWith("/detection")) return 1;
+    if (path.startsWith("/crops") || path.startsWith("/detection")) return 1;
     if (path.startsWith("/learn")) return 2;
     if (path.startsWith("/profile")) return 3;
     if (path.startsWith("/alerts")) return 0;

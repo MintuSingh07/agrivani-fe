@@ -17,6 +17,7 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ChatMessage {
   id: string;
@@ -115,16 +116,17 @@ function FormattedMessageText({ text, isUser }: { text: string; isUser: boolean 
 
 function ChatContent() {
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputQuery, setInputQuery] = useState("");
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -133,10 +135,10 @@ function ChatContent() {
 
   // Quick suggestion prompts
   const quickSuggestions = [
-    "Can I mix this with insecticide?",
-    "Will rain wash away the spray?",
-    "Where to buy Tricyclazole locally?",
-    "How many days before harvest to stop spraying?",
+    t.quickQueryPest,
+    t.quickQueryWater,
+    t.quickQueryYellowing,
+    t.quickQueryFertilizer,
   ];
 
   // Initialize Chat (Check if coming from Detection or fresh)
@@ -437,10 +439,10 @@ function ChatContent() {
               </div>
               <div>
                 <h1 className="text-sm font-semibold text-gray-900 leading-tight">
-                  AgriVani Assistant
+                  {t.chatTitle}
                 </h1>
                 <p className="text-[10px] text-emerald-700 font-medium">
-                  ● Online • 24/7 Crop Specialist
+                  ● {t.onlineSync.split("-")[0].trim()}
                 </p>
               </div>
             </div>
@@ -625,7 +627,7 @@ function ChatContent() {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSendMessage();
             }}
-            placeholder={isRecording ? "Listening to your voice..." : "Ask about remedies, dosages, mixing..."}
+            placeholder={isRecording ? t.voiceListening : t.chatInputPlaceholder}
             className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#144733]"
           />
 

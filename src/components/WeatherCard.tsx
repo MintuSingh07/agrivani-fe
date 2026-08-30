@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Sun, Wind, Thermometer, Droplets, ChevronRight, Moon, CloudSun } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface WeatherCardProps {
   userName?: string;
@@ -21,17 +22,20 @@ export default function WeatherCard({
   userName = "Zara",
   location = "",
   temperature = "26°C",
-  condition = "Sunny Day",
+  condition,
   timestamp,
   windSpeed = "5 km/h",
   tempVar = "+12°C",
   humidity = "42.5%",
   bgImageUrl = "/images/farm_weather_scenic.jpg",
 }: WeatherCardProps) {
+  const { t } = useLanguage();
   const [greeting, setGreeting] = useState("Good Morning");
   const [currentTime, setCurrentTime] = useState("");
   const [currentLocation, setCurrentLocation] = useState(location);
   const [isNight, setIsNight] = useState(false);
+
+  const displayCondition = condition || (isNight ? "Clear Night" : t.sunnyDay);
 
   // 1. Dynamic local time & greeting calculation (Updates live every second)
   useEffect(() => {
@@ -39,11 +43,11 @@ export default function WeatherCard({
       const now = new Date();
       const hour = now.getHours();
 
-      let timeOfDay = "Good Morning";
+      let timeOfDay = t.greetingMorning;
       if (hour >= 12 && hour < 17) {
-        timeOfDay = "Good Afternoon";
+        timeOfDay = t.greetingAfternoon;
       } else if (hour >= 17 || hour < 5) {
-        timeOfDay = "Good Evening";
+        timeOfDay = t.greetingEvening;
         setIsNight(true);
       } else {
         setIsNight(false);
@@ -59,7 +63,7 @@ export default function WeatherCard({
     updateTimeAndGreeting();
     const interval = setInterval(updateTimeAndGreeting, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [t]);
 
   // 2. Dual Real Geolocation fetching (IP Fallback + High Accuracy GPS)
   useEffect(() => {
@@ -185,12 +189,12 @@ export default function WeatherCard({
             <div className="flex items-center gap-1.5 text-base sm:text-lg font-semibold text-white drop-shadow-sm">
               {isNight ? (
                 <Moon className="w-5 h-5 text-indigo-200 fill-indigo-200" />
-              ) : condition.toLowerCase().includes("sun") ? (
+              ) : displayCondition.toLowerCase().includes("sun") || displayCondition.toLowerCase().includes("धूप") || displayCondition.toLowerCase().includes("রৌদ্র") ? (
                 <Sun className="w-5 h-5 text-amber-300 fill-amber-300" />
               ) : (
                 <CloudSun className="w-5 h-5 text-sky-200" />
               )}
-              <span>{condition}</span>
+              <span>{displayCondition}</span>
             </div>
             <span className="text-[11px] sm:text-xs text-white/85 font-normal mt-0.5 tracking-wide">
               {currentTime}
