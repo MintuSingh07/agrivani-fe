@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -680,9 +680,11 @@ export default function AuthPage() {
   
   // OTP flow states (Farmer)
   const [otpSent, setOtpSent] = useState(false);
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [otp, setOtp] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
   const [otpMessage, setOtpMessage] = useState('');
+  const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   // Officer specific states
   const [officerId, setOfficerId] = useState('');
@@ -710,7 +712,12 @@ export default function AuthPage() {
     }
   }, []);
 
-  // Countdown timer for OTP resend
+  // Keep `otp` in sync with `otpDigits`
+  useEffect(() => {
+    setOtp(otpDigits.join(''));
+  }, [otpDigits]);
+
+  // Countdown timer for OTP resend (30 seconds)
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (resendCountdown > 0) {
@@ -737,18 +744,76 @@ export default function AuthPage() {
     }
   };
 
-  // Farmer: Send OTP handler
+  // 6-digit OTP Box Handlers
+  const handleOtpDigitChange = (index: number, value: string) => {
+    const cleanVal = value.replace(/[^0-9]/g, '');
+    if (!cleanVal) {
+      const newDigits = [...otpDigits];
+      newDigits[index] = '';
+      setOtpDigits(newDigits);
+      return;
+    }
+
+    if (cleanVal.length > 1) {
+      const chars = cleanVal.slice(0, 6).split('');
+      const newDigits = [...otpDigits];
+      chars.forEach((c, i) => {
+        if (index + i < 6) newDigits[index + i] = c;
+      });
+      setOtpDigits(newDigits);
+      const nextFocus = Math.min(5, index + chars.length);
+      otpInputsRef.current[nextFocus]?.focus();
+      return;
+    }
+
+    const newDigits = [...otpDigits];
+    newDigits[index] = cleanVal;
+    setOtpDigits(newDigits);
+
+    if (index < 5 && cleanVal) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!otpDigits[index] && index > 0) {
+        otpInputsRef.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (pastedData) {
+      const newDigits = [...otpDigits];
+      pastedData.split('').forEach((char, i) => {
+        if (i < 6) newDigits[i] = char;
+      });
+      setOtpDigits(newDigits);
+      otpInputsRef.current[Math.min(5, pastedData.length - 1)]?.focus();
+    }
+  };
+
+  // Farmer: Send OTP handler (30s timer)
   const handleSendOtp = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     if (!mobile || mobile.length < 10) {
-      alert("Please enter a valid 10-digit mobile number first.");
+      alert("Please enter a valid 10-digit mobile number.");
       return;
     }
     setOtpSent(true);
     setResendCountdown(30);
-    // Simulated demo OTP
     setOtpMessage("Demo OTP sent: 482910");
-    setOtp("482910");
+    setOtpDigits(['4', '8', '2', '9', '1', '0']);
+    setTimeout(() => {
+      otpInputsRef.current[0]?.focus();
+    }, 100);
   };
 
   // Main Submit handler
@@ -911,35 +976,7 @@ export default function AuthPage() {
         {/* Content Area */}
         <div className="flex-1 px-5 pt-3 pb-6 flex flex-col overflow-y-auto">
           
-          {/* Top Officer Mode Indicator Banner (Shown ONLY when in Officer Portal Mode) */}
-          {role === 'officer' && (
-            <div className="flex items-center justify-between bg-[#E4EEE2] border border-[#BED5C1] rounded-2xl px-3.5 py-2.5 mb-3.5 animate-in fade-in duration-200">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#183B2B] text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                  🏛️
-                </div>
-                <div>
-                  <p className="text-[12px] font-bold text-[#143926] leading-tight">
-                    {t.officerRole} Portal
-                  </p>
-                  <p className="text-[10px] text-[#4A7255] font-medium">
-                    Govt. of West Bengal
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setRole('farmer');
-                  setOtpSent(false);
-                  setOtp('');
-                }}
-                className="text-[11.5px] font-bold text-[#2D7A4D] hover:text-[#183B2B] bg-white px-2.5 py-1.5 rounded-xl border border-[#CBDDC7] shadow-2xs hover:bg-[#F2F7F1] flex items-center gap-1 cursor-pointer transition active:scale-95"
-              >
-                <span>{t.backToFarmerLogin}</span>
-              </button>
-            </div>
-          )}
+
 
           {/* 2. SIGN IN / SIGN UP SEGMENTED CONTROL TABS */}
           <div className="bg-[#E7F0E5] border-[1.5px] border-[#D2E4D3] rounded-[14px] p-1 grid grid-cols-2 gap-1 mb-3.5">
@@ -1005,82 +1042,122 @@ export default function AuthPage() {
             {/* ========================================================================= */}
             {role === 'farmer' && activeTab === 'signin' && (
               <>
-                {/* Mobile Number Field */}
-                <div className="flex flex-col gap-1">
+                {/* Mobile Number Field with Embedded Send OTP Action */}
+                <div className="flex flex-col gap-1.5">
                   <label className="text-[13.5px] font-bold text-[#1B382A]">
                     {t.mobileNumber}
                   </label>
-                  <div className="flex h-[48px] rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] overflow-hidden focus-within:border-[#2D7A4D] focus-within:ring-4 focus-within:ring-[#2D7A4D]/15 transition-all">
-                    <div className="px-3.5 bg-[#EFF4EE] border-r-[1.5px] border-[#C4D9C7] flex items-center justify-center font-bold text-[#234732] text-[14px]">
+                  <div className={`flex items-center h-[50px] rounded-2xl bg-white border-[1.5px] transition-all overflow-hidden ${
+                    otpSent
+                      ? 'border-[#94C39B] bg-[#F7FAF6]'
+                      : 'border-[#C4D9C7] focus-within:border-[#2D7A4D] focus-within:ring-4 focus-within:ring-[#2D7A4D]/15'
+                  }`}>
+                    <div className="px-3.5 h-full bg-[#EFF4EE] border-r-[1.5px] border-[#C4D9C7] flex items-center justify-center font-bold text-[#234732] text-[14px]">
                       +91
                     </div>
                     <input
                       type="tel"
                       required
+                      maxLength={10}
                       value={mobile}
                       onChange={handleMobileChange}
-                      placeholder={t.mobilePlaceholder}
-                      className="flex-1 px-3 bg-transparent text-[#153224] text-[15px] font-medium placeholder-[#9BB3A1] outline-none"
+                      placeholder={t.mobilePlaceholder || "10-digit mobile number"}
+                      className="flex-1 px-3.5 bg-transparent text-[#153224] text-[15px] font-bold tracking-wide placeholder-[#9BB3A1] outline-none"
                     />
-                  </div>
-                </div>
-
-                {/* OTP Section if OTP is sent */}
-                {otpSent ? (
-                  <div className="bg-[#EAF3E7] p-3.5 rounded-2xl border border-[#C2DAC5] space-y-2.5 animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[13px] font-bold text-[#1B382A]">
-                        {t.enterOtp}
-                      </label>
-                      <span className="text-[11px] font-semibold text-[#2D7A4D] bg-white px-2 py-0.5 rounded border border-[#C4D9C7]">
-                        OTP sent to +91 {mobile}
-                      </span>
-                    </div>
-
-                    <div className="relative">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        required
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="• • • • • •"
-                        className="w-full h-[46px] px-4 text-center tracking-[8px] text-[18px] font-bold rounded-xl bg-white border-[1.5px] border-[#A8C9AF] text-[#153224] outline-none focus:border-[#2D7A4D] focus:ring-3 focus:ring-[#2D7A4D]/20"
-                      />
-                    </div>
-
-                    {otpMessage && (
-                      <div className="text-[11.5px] text-[#2D7A4D] font-semibold flex items-center gap-1.5">
-                        <span>✨</span>
-                        <span>{otpMessage}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="text-[#5A7665]">Didn't receive OTP?</span>
-                      {resendCountdown > 0 ? (
-                        <span className="text-[#7B9584] font-medium">
-                          {t.resendOtp} in <strong className="text-[#2D7A4D]">{resendCountdown}s</strong>
-                        </span>
+                    
+                    {/* Send OTP button on right side of mobile input */}
+                    <div className="pr-2">
+                      {otpSent ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpSent(false);
+                            setOtpDigits(['', '', '', '', '', '']);
+                            setOtp('');
+                          }}
+                          className="text-[11.5px] font-bold text-[#2D7A4D] hover:underline px-2 py-1 cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Change</span>
+                        </button>
                       ) : (
                         <button
                           type="button"
+                          disabled={mobile.length !== 10}
                           onClick={handleSendOtp}
-                          className="font-bold text-[#2D7A4D] hover:underline cursor-pointer"
+                          className={`px-3 py-1.5 rounded-xl text-[12.5px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                            mobile.length === 10
+                              ? 'bg-[#2D7A4D] text-white hover:bg-[#22603C] shadow-sm active:scale-95'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
                         >
-                          {t.resendOtp}
+                          <span>Send OTP</span>
                         </button>
                       )}
                     </div>
                   </div>
-                ) : (
-                  <div className="text-[12px] text-[#5A7665] bg-[#EFF6EE] p-2.5 rounded-xl border border-[#D5E5D5] flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D7A4D" strokeWidth="2">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                    <span>Instant password-free login with 6-digit OTP verification.</span>
+                </div>
+
+                {/* OTP Section with 6 Separate Square Boxes (Appears after Send OTP) */}
+                {otpSent ? (
+                  <div className="bg-[#EBF4E8] p-4 rounded-2xl border-[1.5px] border-[#B7D8BB] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[13px] font-extrabold text-[#153823]">
+                        {t.enterOtp}
+                      </label>
+                      <span className="text-[11px] font-bold text-[#2D7A4D] bg-white px-2.5 py-0.5 rounded-full border border-[#C2DAC5]">
+                        OTP sent to +91 {mobile}
+                      </span>
+                    </div>
+
+                    {/* 6 SEPARATE SQUARE BOXES */}
+                    <div className="flex justify-between items-center gap-2 max-w-sm mx-auto pt-1">
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => { otpInputsRef.current[idx] = el; }}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          onPaste={handleOtpPaste}
+                          className={`w-11 h-12 sm:w-12 sm:h-13 text-center text-[20px] font-extrabold rounded-xl border-[2px] transition-all outline-none ${
+                            digit
+                              ? 'bg-white border-[#2D7A4D] text-[#143B25] shadow-xs'
+                              : 'bg-white/90 border-[#CBDDC7] text-[#143B25] focus:border-[#2D7A4D] focus:ring-4 focus:ring-[#2D7A4D]/15'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Bottom row: Demo hint on left, Resend OTP with 30s timer on right */}
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <div className="flex items-center gap-1 text-[11.5px] font-bold text-[#2D7A4D] bg-white/70 px-2 py-0.5 rounded-lg border border-[#C2DAC5]/60">
+                        <span>✨</span>
+                        <span>Demo OTP: 482910</span>
+                      </div>
+
+                      {/* Right side: Resend OTP with 30s countdown timer */}
+                      <div className="text-right">
+                        {resendCountdown > 0 ? (
+                          <span className="text-[12px] font-medium text-gray-500">
+                            Resend OTP in <strong className="text-[#2D7A4D] font-bold">{resendCountdown}s</strong>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            className="text-[12.5px] font-extrabold text-[#2D7A4D] hover:text-[#1B4D30] hover:underline cursor-pointer transition flex items-center gap-1"
+                          >
+                            <span>Resend OTP</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
+                ) : null}
 
                 {/* Submit Action Button */}
                 <button
@@ -1112,23 +1189,58 @@ export default function AuthPage() {
                   />
                 </div>
 
-                {/* Mobile Number */}
-                <div className="flex flex-col gap-1">
+                {/* Mobile Number with Send OTP */}
+                <div className="flex flex-col gap-1.5">
                   <label className="text-[13.5px] font-bold text-[#1B382A]">
                     {t.mobileNumber}
                   </label>
-                  <div className="flex h-[46px] rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] overflow-hidden focus-within:border-[#2D7A4D] focus-within:ring-3 focus-within:ring-[#2D7A4D]/15 transition-all">
+                  <div className={`flex items-center h-[48px] rounded-[13px] bg-white border-[1.5px] transition-all overflow-hidden ${
+                    otpSent
+                      ? 'border-[#94C39B] bg-[#F7FAF6]'
+                      : 'border-[#C4D9C7] focus-within:border-[#2D7A4D] focus-within:ring-3 focus-within:ring-[#2D7A4D]/15'
+                  }`}>
                     <div className="px-3 bg-[#EFF4EE] border-r-[1.5px] border-[#C4D9C7] flex items-center justify-center font-bold text-[#234732] text-[13.5px]">
                       +91
                     </div>
                     <input
                       type="tel"
                       required
+                      maxLength={10}
                       value={mobile}
                       onChange={handleMobileChange}
-                      placeholder={t.mobilePlaceholder}
-                      className="flex-1 px-3 bg-transparent text-[#153224] text-[14.5px] font-medium placeholder-[#9BB3A1] outline-none"
+                      placeholder={t.mobilePlaceholder || "10-digit number"}
+                      className="flex-1 px-3 bg-transparent text-[#153224] text-[14.5px] font-bold tracking-wide placeholder-[#9BB3A1] outline-none"
                     />
+                    
+                    {/* Send OTP button */}
+                    <div className="pr-2">
+                      {otpSent ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpSent(false);
+                            setOtpDigits(['', '', '', '', '', '']);
+                            setOtp('');
+                          }}
+                          className="text-[11.5px] font-bold text-[#2D7A4D] hover:underline px-2 py-1 cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Change</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={mobile.length !== 10}
+                          onClick={handleSendOtp}
+                          className={`px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                            mobile.length === 10
+                              ? 'bg-[#2D7A4D] text-white hover:bg-[#22603C] shadow-sm active:scale-95'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <span>Send OTP</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1192,35 +1304,69 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Farmer Signup OTP Box */}
-                {otpSent ? (
-                  <div className="bg-[#EAF3E7] p-3 rounded-2xl border border-[#C2DAC5] space-y-2">
+                {/* Farmer Signup OTP Box with 6 Square Boxes & 30s timer */}
+                {otpSent && (
+                  <div className="bg-[#EBF4E8] p-4 rounded-2xl border-[1.5px] border-[#B7D8BB] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 shadow-xs">
                     <div className="flex items-center justify-between">
-                      <label className="text-[12.5px] font-bold text-[#1B382A]">
+                      <label className="text-[13px] font-extrabold text-[#153823]">
                         {t.enterOtp}
                       </label>
-                      <span className="text-[11px] font-semibold text-[#2D7A4D]">
+                      <span className="text-[11px] font-bold text-[#2D7A4D] bg-white px-2.5 py-0.5 rounded-full border border-[#C2DAC5]">
                         OTP sent to +91 {mobile}
                       </span>
                     </div>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      required
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="• • • • • •"
-                      className="w-full h-[44px] px-4 text-center tracking-[8px] text-[17px] font-bold rounded-xl bg-white border-[1.5px] border-[#A8C9AF] text-[#153224] outline-none focus:border-[#2D7A4D]"
-                    />
-                    {otpMessage && (
-                      <div className="text-[11px] text-[#2D7A4D] font-semibold">
-                        ✨ {otpMessage}
-                      </div>
-                    )}
-                  </div>
-                ) : null}
 
-                {/* Submit / Send OTP Button */}
+                    {/* 6 SEPARATE SQUARE BOXES */}
+                    <div className="flex justify-between items-center gap-2 max-w-sm mx-auto pt-1">
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => { otpInputsRef.current[idx] = el; }}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          onPaste={handleOtpPaste}
+                          className={`w-11 h-12 sm:w-12 sm:h-13 text-center text-[20px] font-extrabold rounded-xl border-[2px] transition-all outline-none ${
+                            digit
+                              ? 'bg-white border-[#2D7A4D] text-[#143B25] shadow-xs'
+                              : 'bg-white/90 border-[#CBDDC7] text-[#143B25] focus:border-[#2D7A4D] focus:ring-4 focus:ring-[#2D7A4D]/15'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Demo hint + Resend OTP on right */}
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <div className="flex items-center gap-1 text-[11.5px] font-bold text-[#2D7A4D] bg-white/70 px-2 py-0.5 rounded-lg border border-[#C2DAC5]/60">
+                        <span>✨</span>
+                        <span>Demo OTP: 482910</span>
+                      </div>
+
+                      {/* Right side: Resend OTP with 30s countdown timer */}
+                      <div className="text-right">
+                        {resendCountdown > 0 ? (
+                          <span className="text-[12px] font-medium text-gray-500">
+                            Resend OTP in <strong className="text-[#2D7A4D] font-bold">{resendCountdown}s</strong>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            className="text-[12.5px] font-extrabold text-[#2D7A4D] hover:text-[#1B4D30] hover:underline cursor-pointer transition flex items-center gap-1"
+                          >
+                            <span>Resend OTP</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit / Verify Button */}
                 <button
                   type="submit"
                   className="mt-1 h-[48px] bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(45,122,77,0.22)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -1246,7 +1392,7 @@ export default function AuthPage() {
                     value={officerId}
                     onChange={(e) => setOfficerId(e.target.value)}
                     placeholder={t.officerIdPlaceholder}
-                    className="w-full h-[46px] px-3.5 rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14.5px] font-medium placeholder-[#9BB3A1] focus:border-[#183B2B] focus:ring-3 focus:ring-[#183B2B]/15 outline-none transition-all"
+                    className="w-full h-[46px] px-3.5 rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14.5px] font-medium placeholder-[#9BB3A1] focus:border-[#2D7A4D] focus:ring-3 focus:ring-[#2D7A4D]/15 outline-none transition-all"
                   />
                 </div>
 
@@ -1262,7 +1408,7 @@ export default function AuthPage() {
                         setForgotOfficerId(officerId);
                         setShowForgotModal(true);
                       }}
-                      className="text-[12.5px] font-bold text-[#2D7A4D] hover:text-[#183B2B] hover:underline cursor-pointer transition"
+                      className="text-[12.5px] font-bold text-[#2D7A4D] hover:text-[#1B4D30] hover:underline cursor-pointer transition"
                     >
                       {t.forgotPassword}
                     </button>
@@ -1274,7 +1420,7 @@ export default function AuthPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t.enterPassword}
-                      className="w-full h-[46px] pl-3.5 pr-11 rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14.5px] font-medium placeholder-[#9BB3A1] focus:border-[#183B2B] focus:ring-3 focus:ring-[#183B2B]/15 outline-none transition-all"
+                      className="w-full h-[46px] pl-3.5 pr-11 rounded-[13px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14.5px] font-medium placeholder-[#9BB3A1] focus:border-[#2D7A4D] focus:ring-3 focus:ring-[#2D7A4D]/15 outline-none transition-all"
                     />
                     <button
                       type="button"
@@ -1299,7 +1445,7 @@ export default function AuthPage() {
                 {/* Officer Sign In Submit Button */}
                 <button
                   type="submit"
-                  className="mt-1 h-[48px] bg-[#183B2B] hover:bg-[#122E21] active:bg-[#0B1E15] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(24,59,43,0.25)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="mt-1 h-[48px] bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(45,122,77,0.22)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
@@ -1327,7 +1473,7 @@ export default function AuthPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Dr. Subhashish Roy"
-                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14px] font-medium outline-none focus:border-[#183B2B]"
+                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14px] font-medium outline-none focus:border-[#2D7A4D]"
                   />
                 </div>
 
@@ -1337,7 +1483,7 @@ export default function AuthPage() {
                     <label className="text-[13px] font-bold text-[#1B382A]">
                       {t.mobileNumber}
                     </label>
-                    <div className="flex h-[44px] rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] overflow-hidden focus-within:border-[#183B2B]">
+                    <div className="flex h-[44px] rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] overflow-hidden focus-within:border-[#2D7A4D]">
                       <div className="px-2.5 bg-[#EFF4EE] border-r-[1.5px] border-[#C4D9C7] flex items-center justify-center font-bold text-[#234732] text-[13px]">
                         +91
                       </div>
@@ -1362,7 +1508,7 @@ export default function AuthPage() {
                       value={officerEmail}
                       onChange={(e) => setOfficerEmail(e.target.value)}
                       placeholder={t.officerEmailPlaceholder}
-                      className="w-full h-[44px] px-3 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13.5px] font-medium outline-none focus:border-[#183B2B]"
+                      className="w-full h-[44px] px-3 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13.5px] font-medium outline-none focus:border-[#2D7A4D]"
                     />
                   </div>
                 </div>
@@ -1378,7 +1524,7 @@ export default function AuthPage() {
                     value={officerId}
                     onChange={(e) => setOfficerId(e.target.value)}
                     placeholder={t.officerIdPlaceholder}
-                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14px] font-medium outline-none focus:border-[#183B2B]"
+                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[14px] font-medium outline-none focus:border-[#2D7A4D]"
                   />
                 </div>
 
@@ -1391,7 +1537,7 @@ export default function AuthPage() {
                   <select
                     value={assignedArea}
                     onChange={(e) => setAssignedArea(e.target.value)}
-                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] font-semibold text-[13.5px] outline-none cursor-pointer focus:border-[#183B2B]"
+                    className="w-full h-[44px] px-3.5 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] font-semibold text-[13.5px] outline-none cursor-pointer focus:border-[#2D7A4D]"
                   >
                     {WEST_BENGAL_DISTRICTS.map((dist) => (
                       <option key={dist} value={dist}>
@@ -1414,7 +1560,7 @@ export default function AuthPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Min 6 chars"
-                        className="w-full h-[44px] pl-3 pr-8 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13px] font-medium outline-none focus:border-[#183B2B]"
+                        className="w-full h-[44px] pl-3 pr-8 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13px] font-medium outline-none focus:border-[#2D7A4D]"
                       />
                       <button
                         type="button"
@@ -1437,7 +1583,7 @@ export default function AuthPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Re-enter"
-                        className="w-full h-[44px] pl-3 pr-8 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13px] font-medium outline-none focus:border-[#183B2B]"
+                        className="w-full h-[44px] pl-3 pr-8 rounded-[12px] bg-white border-[1.5px] border-[#C4D9C7] text-[#153224] text-[13px] font-medium outline-none focus:border-[#2D7A4D]"
                       />
                       <button
                         type="button"
@@ -1453,7 +1599,7 @@ export default function AuthPage() {
                 {/* Officer Sign Up Submit Button */}
                 <button
                   type="submit"
-                  className="mt-1 h-[48px] bg-[#183B2B] hover:bg-[#122E21] active:bg-[#0B1E15] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(24,59,43,0.25)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="mt-1 h-[48px] bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white font-bold text-[15px] rounded-[13px] shadow-[0_4px_12px_rgba(45,122,77,0.22)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -1504,7 +1650,7 @@ export default function AuthPage() {
               <div className="mt-3 pt-3 border-t border-[#DDEADC]">
                 <div className="w-full bg-[#EBF3E8] border border-[#CBDDC7] rounded-2xl p-3 flex items-center justify-between transition-all hover:bg-[#E2EFE0] hover:border-[#ADC9AA] shadow-2xs">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#183B2B] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#2D7A4D] text-white flex items-center justify-center shadow-xs shrink-0">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         <path d="m9 12 2 2 4-4"/>
@@ -1526,7 +1672,7 @@ export default function AuthPage() {
                       setOtpSent(false);
                       setOtp('');
                     }}
-                    className="px-3 py-2 bg-[#183B2B] hover:bg-[#122E21] active:bg-[#0B1E15] text-white text-[12px] font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-1"
+                    className="px-3 py-2 bg-[#2D7A4D] hover:bg-[#246640] active:bg-[#1B4D30] text-white text-[12px] font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-1"
                   >
                     <span>{t.goToOfficerPortal}</span>
                   </button>
@@ -1574,7 +1720,7 @@ export default function AuthPage() {
               {/* Modal Header */}
               <div className="flex items-start justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-2xl bg-[#E8F1E7] text-[#183B2B] flex items-center justify-center border border-[#BED5C1]">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E8F1E7] text-[#2D7A4D] flex items-center justify-center border border-[#BED5C1]">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -1626,7 +1772,7 @@ export default function AuthPage() {
                     value={forgotOfficerId}
                     onChange={(e) => setForgotOfficerId(e.target.value)}
                     placeholder="e.g. WB-AGRI-2025-104"
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#183B2B] outline-none"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#2D7A4D] outline-none"
                   />
                 </div>
 
@@ -1641,7 +1787,7 @@ export default function AuthPage() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="officer@wb.gov.in"
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#183B2B] outline-none"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#2D7A4D] outline-none"
                   />
                 </div>
 
@@ -1657,7 +1803,7 @@ export default function AuthPage() {
                       value={forgotNewPassword}
                       onChange={(e) => setForgotNewPassword(e.target.value)}
                       placeholder="Min 6 chars"
-                      className="w-full h-[42px] px-3 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#183B2B] outline-none"
+                      className="w-full h-[42px] px-3 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#2D7A4D] outline-none"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1670,7 +1816,7 @@ export default function AuthPage() {
                       value={forgotConfirmPassword}
                       onChange={(e) => setForgotConfirmPassword(e.target.value)}
                       placeholder="Re-enter"
-                      className="w-full h-[42px] px-3 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#183B2B] outline-none"
+                      className="w-full h-[42px] px-3 rounded-xl bg-[#F8FAF5] border border-gray-300 text-xs font-semibold text-gray-900 focus:bg-white focus:border-[#2D7A4D] outline-none"
                     />
                   </div>
                 </div>
@@ -1679,7 +1825,7 @@ export default function AuthPage() {
                 <div className="pt-2 flex items-center gap-2">
                   <button
                     type="submit"
-                    className="flex-1 bg-[#183B2B] hover:bg-[#122E21] text-white py-2.5 rounded-xl text-xs font-bold transition active:scale-98 shadow-md cursor-pointer"
+                    className="flex-1 bg-[#2D7A4D] hover:bg-[#246640] text-white py-2.5 rounded-xl text-xs font-bold transition active:scale-98 shadow-md cursor-pointer"
                   >
                     Reset &amp; Update Password
                   </button>

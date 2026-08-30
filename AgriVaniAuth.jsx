@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
  * AgriVaniAuth - Modern Farmer & Officer Authentication Component
@@ -109,8 +109,10 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
   const [irrigation, setIrrigation] = useState('Canal & Borewell');
 
   const [otpSent, setOtpSent] = useState(false);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [otp, setOtp] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
+  const otpInputsRef = useRef([]);
 
   const [officerId, setOfficerId] = useState('');
   const [officerEmail, setOfficerEmail] = useState('');
@@ -123,6 +125,20 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [forgotStatus, setForgotStatus] = useState({ type: 'idle', msg: '' });
 
+  // Keep `otp` in sync with `otpDigits`
+  useEffect(() => {
+    setOtp(otpDigits.join(''));
+  }, [otpDigits]);
+
+  // Countdown timer for OTP resend (30 seconds)
+  useEffect(() => {
+    let timer;
+    if (resendCountdown > 0) {
+      timer = setTimeout(() => setResendCountdown((prev) => prev - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCountdown]);
+
   const t = translations[language] || translations.en;
 
   const handleMobileChange = (e) => {
@@ -130,15 +146,73 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
     setMobile(val);
   };
 
+  const handleOtpDigitChange = (index, value) => {
+    const cleanVal = value.replace(/[^0-9]/g, '');
+    if (!cleanVal) {
+      const newDigits = [...otpDigits];
+      newDigits[index] = '';
+      setOtpDigits(newDigits);
+      return;
+    }
+
+    if (cleanVal.length > 1) {
+      const chars = cleanVal.slice(0, 6).split('');
+      const newDigits = [...otpDigits];
+      chars.forEach((c, i) => {
+        if (index + i < 6) newDigits[index + i] = c;
+      });
+      setOtpDigits(newDigits);
+      const nextFocus = Math.min(5, index + chars.length);
+      otpInputsRef.current[nextFocus]?.focus();
+      return;
+    }
+
+    const newDigits = [...otpDigits];
+    newDigits[index] = cleanVal;
+    setOtpDigits(newDigits);
+
+    if (index < 5 && cleanVal) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!otpDigits[index] && index > 0) {
+        otpInputsRef.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (pastedData) {
+      const newDigits = [...otpDigits];
+      pastedData.split('').forEach((char, i) => {
+        if (i < 6) newDigits[i] = char;
+      });
+      setOtpDigits(newDigits);
+      otpInputsRef.current[Math.min(5, pastedData.length - 1)]?.focus();
+    }
+  };
+
   const handleSendOtp = (e) => {
     if (e) e.preventDefault();
     if (!mobile || mobile.length < 10) {
-      alert("Please enter a valid 10-digit mobile number first.");
+      alert("Please enter a valid 10-digit mobile number.");
       return;
     }
     setOtpSent(true);
     setResendCountdown(30);
-    setOtp("482910");
+    setOtpDigits(['4', '8', '2', '9', '1', '0']);
+    setTimeout(() => {
+      otpInputsRef.current[0]?.focus();
+    }, 100);
   };
 
   const handleSubmit = (e) => {
@@ -194,7 +268,7 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
             type="button"
             onClick={() => setRole('officer')}
             className={`py-2 px-3 rounded-xl font-bold text-xs transition ${
-              role === 'officer' ? 'bg-[#183B2B] text-white shadow-md' : 'text-[#3D5E47]'
+              role === 'officer' ? 'bg-[#2D7A4D] text-white shadow-md' : 'text-[#3D5E47]'
             }`}
           >
             🏛️ {t.officerRole}
@@ -243,16 +317,47 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
 
               <div>
                 <label className="text-xs font-bold text-gray-700">{t.mobileNumber}</label>
-                <div className="flex h-10 rounded-xl border border-gray-300 overflow-hidden mt-1">
-                  <span className="px-3 bg-gray-100 flex items-center text-xs font-bold text-gray-700">+91</span>
+                <div className={`flex items-center h-11 rounded-xl border overflow-hidden mt-1 transition ${
+                  otpSent ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-300 bg-white'
+                }`}>
+                  <span className="px-3 bg-gray-100 h-full flex items-center text-xs font-bold text-gray-700 border-r border-gray-200">+91</span>
                   <input
                     type="tel"
                     required
+                    maxLength={10}
                     value={mobile}
                     onChange={handleMobileChange}
                     placeholder="10-digit mobile"
-                    className="flex-1 px-3 text-xs outline-none"
+                    className="flex-1 px-3 text-xs font-bold outline-none bg-transparent"
                   />
+                  <div className="pr-1.5">
+                    {otpSent ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpDigits(['', '', '', '', '', '']);
+                          setOtp('');
+                        }}
+                        className="text-[11px] font-bold text-emerald-700 hover:underline px-2 py-1"
+                      >
+                        Change
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={mobile.length !== 10}
+                        onClick={handleSendOtp}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                          mobile.length === 10
+                            ? 'bg-[#2D7A4D] text-white hover:bg-[#23663f] shadow-xs active:scale-95'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        Send OTP
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -291,22 +396,61 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
               )}
 
               {otpSent && (
-                <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
-                  <label className="text-xs font-bold text-emerald-900">{t.enterOtp}</label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full h-10 text-center tracking-widest text-base font-bold bg-white rounded-lg border border-emerald-300 mt-1"
-                  />
-                  <span className="text-[10px] text-emerald-700 font-semibold block mt-1">Hint: 482910</span>
+                <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-emerald-900">{t.enterOtp}</label>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">
+                      Sent to +91 {mobile}
+                    </span>
+                  </div>
+
+                  {/* 6 Square Boxes */}
+                  <div className="flex justify-between gap-1.5 max-w-xs mx-auto">
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => { otpInputsRef.current[idx] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                        onPaste={handleOtpPaste}
+                        className={`w-10 h-11 text-center text-lg font-black rounded-lg border-2 bg-white outline-none transition ${
+                          digit ? 'border-emerald-600 text-emerald-950' : 'border-gray-300 text-gray-800 focus:border-emerald-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Demo OTP & Right-Aligned Resend OTP with 30s countdown */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-emerald-800 font-semibold bg-white/80 px-2 py-0.5 rounded border border-emerald-200">
+                      ✨ Demo: 482910
+                    </span>
+                    <div className="text-right">
+                      {resendCountdown > 0 ? (
+                        <span className="text-[11px] font-medium text-gray-500">
+                          Resend OTP in <strong className="text-emerald-700">{resendCountdown}s</strong>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          className="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer"
+                        >
+                          Resend OTP
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full h-11 bg-[#2D7A4D] hover:bg-[#23663f] text-white font-bold rounded-xl text-xs shadow-md mt-2"
+                className="w-full h-11 bg-[#2D7A4D] hover:bg-[#23663f] text-white font-bold rounded-xl text-xs shadow-md mt-2 cursor-pointer"
               >
                 {otpSent ? (activeTab === 'signin' ? t.verifyAndSignIn : t.verifyAndSignUp) : t.sendOtp}
               </button>
@@ -392,7 +536,7 @@ export default function AgriVaniAuth({ onLoginSuccess }) {
 
               <button
                 type="submit"
-                className="w-full h-11 bg-[#183B2B] hover:bg-[#122E21] text-white font-bold rounded-xl text-xs shadow-md mt-2"
+                className="w-full h-11 bg-[#2D7A4D] hover:bg-[#246640] text-white font-bold rounded-xl text-xs shadow-md mt-2"
               >
                 {activeTab === 'signin' ? t.signInOfficerBtn : t.registerOfficerBtn}
               </button>
