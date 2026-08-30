@@ -20,7 +20,7 @@ export default function HomePage() {
           try {
             const parsed = JSON.parse(savedProfile);
             if (parsed.name) setUserName(parsed.name);
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -30,7 +30,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-900/10 flex justify-center py-0 sm:py-6 px-0 sm:px-4 font-sans">
       {/* Mobile/Tablet Centered App Frame Container */}
       <main className="w-full max-w-md md:max-w-xl bg-[#FDFFF1] min-h-screen flex flex-col relative pb-32 shadow-2xl overflow-hidden sm:rounded-3xl border-0 sm:border sm:border-gray-200">
-        
+
         {/* 1. Full Half-Screen Weather Report Header */}
         <section id="weather" className="w-full m-0 p-0">
           <WeatherCard
@@ -46,7 +46,7 @@ export default function HomePage() {
 
         {/* Main Dashboard Cards Container */}
         <div className="p-4 space-y-4 flex-1">
-          
+
           {/* 2. 7-Day Weather Forecast Strip */}
           <section id="forecast">
             <WeatherForecastStrip />
