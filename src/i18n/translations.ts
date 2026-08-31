@@ -23,6 +23,7 @@ export const SUPPORTED_LANGUAGES: LanguageInfo[] = [
 export interface TranslationSchema {
   // Navigation
   navHome: string;
+  navDetect: string;
   navCrops: string;
   navChat: string;
   navLearn: string;
@@ -149,6 +150,7 @@ export interface TranslationSchema {
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
   en: {
     navHome: "Home",
+    navDetect: "Detect",
     navCrops: "Crops",
     navChat: "AgriBot",
     navLearn: "Learn",
@@ -266,6 +268,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   hi: {
     navHome: "होम",
+    navDetect: "रोग पहचान",
     navCrops: "फसलें",
     navChat: "एग्रीबॉट",
     navLearn: "सीखें",
@@ -383,6 +386,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   bn: {
     navHome: "হোম",
+    navDetect: "রোগ নির্ণয়",
     navCrops: "ফসল",
     navChat: "এগ্রিবট",
     navLearn: "শিখুন",
@@ -500,6 +504,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   te: {
     navHome: "హోమ్",
+    navDetect: "వ్యాధి నిర్ధారణ",
     navCrops: "పంటలు",
     navChat: "అగ్రిబాట్",
     navLearn: "నేర్చుకోండి",
@@ -617,6 +622,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   mr: {
     navHome: "होम",
+    navDetect: "रोग निदान",
     navCrops: "पिके",
     navChat: "अॅग्रीबॉट",
     navLearn: "शिका",
@@ -734,6 +740,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   pa: {
     navHome: "ਮੁੱਖ ਪੰਨਾ",
+    navDetect: "ਬਿਮਾਰੀ ਪਛਾਣ",
     navCrops: "ਫ਼ਸਲਾਂ",
     navChat: "ਐਗਰੀਬੋਟ",
     navLearn: "ਸਿੱਖੋ",
@@ -851,6 +858,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   ta: {
     navHome: "முகப்பு",
+    navDetect: "நோய் கண்டறிதல்",
     navCrops: "பயிர்கள்",
     navChat: "அக்ரிபாட்",
     navLearn: "கற்க",
@@ -968,6 +976,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   gu: {
     navHome: "હોમ",
+    navDetect: "રોગ નિદાન",
     navCrops: "પાકો",
     navChat: "એગ્રીબોટ",
     navLearn: "શીખો",
@@ -1085,6 +1094,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   or: {
     navHome: "ମୁଖ୍ୟ ପୃଷ୍ଠା",
+    navDetect: "ରୋଗ ଚିହ୍ନଟ",
     navCrops: "ଫସଲ",
     navChat: "ଏଗ୍ରିବଟ୍",
     navLearn: "ଶିଖନ୍ତୁ",
@@ -1202,6 +1212,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
 
   as: {
     navHome: "ঘৰ",
+    navDetect: "ৰোগ নিৰ্ণয়",
     navCrops: "শস্য",
     navChat: "এগ্ৰীবট",
     navLearn: "শিকক",

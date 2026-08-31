@@ -160,8 +160,12 @@ function ChatContent() {
           {
             id: "bot-init",
             sender: "bot",
-            text: `Here is your crop diagnosis report:\n\n**Disease Identified:** ${data.diseaseName || "Rice Leaf Blast (Jhuka Rog)"}\n\n**Description:** ${data.description || "Fungal infection creating diamond-shaped lesions with grey centers."}\n\n**Prescribed Remedies:**\n• **1. Chemical Spray:** Mix 120g *Tricyclazole 75% WP* in 200L water per acre. Spray early morning (6:00 AM - 9:00 AM).\n• **2. Organic Remedy:** Mix 5ml pure *Neem oil* + 1ml mild soap per liter water. Spray every 7 days.\n• **3. Field Management:** Stop excess Urea immediately and maintain shallow field water.\n\nAsk me any questions about dosage, pesticide brands, or upload another leaf image below.`,
-            timestamp: "Just now",
+            text: `Here is your crop diagnosis report:\n\n**Disease Identified:** ${data.diseaseName || "Rice Leaf Blast (Jhuka Rog)"}\n\n**Description:** ${data.description || "Fungal infection creating diamond-shaped lesions with grey centers."}\n\n**Prescribed Remedies:**\n${
+              Array.isArray(data.remedies) && data.remedies.length > 0
+                ? data.remedies.map((r: string) => `• ${r}`).join("\n")
+                : "• **1. Chemical Spray:** Mix 120g *Tricyclazole 75% WP* in 200L water per acre. Spray early morning (6:00 AM - 9:00 AM).\n• **2. Organic Remedy:** Mix 5ml pure *Neem oil* + 1ml mild soap per liter water. Spray every 7 days.\n• **3. Field Management:** Stop excess Urea immediately and maintain shallow field water."
+            }\n\nAsk me any questions about dosage, pesticide brands, or upload another leaf image below.`,
+            timestamp: data.timestamp || "Just now",
             isDiagnosticReport: true,
           },
         ];

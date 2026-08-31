@@ -19,7 +19,7 @@ export default function BottomNavigation() {
 
   const navItems: NavItem[] = [
     { name: t.navHome, href: "/", icon: Home },
-    { name: t.navCrops, href: "/crops", icon: Sprout },
+    { name: t.navDetect, href: "/detection", icon: Sprout },
     { name: t.navLearn, href: "/learn", icon: BookOpen },
     { name: t.navProfile, href: "/profile", icon: User },
   ];
@@ -27,7 +27,7 @@ export default function BottomNavigation() {
   // Helper to map pathname to index
   const getIndexFromPath = (path: string | null) => {
     if (!path || path === "/") return 0;
-    if (path.startsWith("/crops") || path.startsWith("/detection")) return 1;
+    if (path.startsWith("/detection")) return 1;
     if (path.startsWith("/learn")) return 2;
     if (path.startsWith("/profile")) return 3;
     if (path.startsWith("/alerts")) return 0;

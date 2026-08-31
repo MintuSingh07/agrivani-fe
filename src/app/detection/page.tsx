@@ -19,8 +19,75 @@ import {
   ShieldAlert,
   Info,
   Lightbulb,
+  Bot,
+  ChevronRight,
+  Clock,
+  Sparkles,
+  Plus,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+
+interface DiagnosticChatHistory {
+  id: string;
+  title: string;
+  cropName: string;
+  diseaseName: string;
+  date: string;
+  preview: string;
+  status: "Prescribed" | "Follow-up" | "Resolved";
+  statusText: string;
+  image: string;
+  remedies: string[];
+}
+
+const DEFAULT_CHAT_HISTORY: DiagnosticChatHistory[] = [
+  {
+    id: "chat-hist-1",
+    title: "Rice Leaf Blast Treatment",
+    cropName: "Basmati Paddy",
+    diseaseName: "Rice Leaf Blast (Jhuka Rog)",
+    date: "10:30 AM",
+    preview: "Tricyclazole 75% WP @ 120g/200L water per acre spray prescribed.",
+    status: "Prescribed",
+    statusText: "Prescription Active",
+    image: "/images/farm_weather_scenic.jpg",
+    remedies: [
+      "Mix 120g Tricyclazole 75% WP in 200L water per acre.",
+      "Organic: 5ml pure Neem oil + 1ml liquid soap / liter.",
+      "Stop excess Urea fertilizer immediately."
+    ],
+  },
+  {
+    id: "chat-hist-2",
+    title: "Wheat Yellow Rust Advisory",
+    cropName: "Kundan Wheat",
+    diseaseName: "Yellow Stripe Rust",
+    date: "Yesterday",
+    preview: "Foliar spray of Propiconazole 25% EC @ 1ml/L recommended across patches.",
+    status: "Follow-up",
+    statusText: "Follow-up Required",
+    image: "/images/farm_weather_scenic.jpg",
+    remedies: [
+      "Spray Propiconazole 25% EC (Tilt) @ 200ml in 200L water per acre.",
+      "Check field edges where morning mist lingers."
+    ],
+  },
+  {
+    id: "chat-hist-3",
+    title: "Cotton Whitefly & Pest Control",
+    cropName: "Bt Cotton",
+    diseaseName: "Whitefly Infestation & Leaf Curl",
+    date: "24 Aug",
+    preview: "Install 10 yellow sticky traps/acre and apply 5ml Neem oil spray weekly.",
+    status: "Resolved",
+    statusText: "Treatment Resolved",
+    image: "/images/farm_weather_scenic.jpg",
+    remedies: [
+      "Install 10-15 yellow sticky traps per acre.",
+      "Spray Neem oil 1500 ppm @ 5ml/liter."
+    ],
+  },
+];
 
 export default function DetectionPage() {
   const router = useRouter();
@@ -29,10 +96,26 @@ export default function DetectionPage() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraFacing, setCameraFacing] = useState<"environment" | "user">("environment");
+  const [chatHistory, setChatHistory] = useState<DiagnosticChatHistory[]>(DEFAULT_CHAT_HISTORY);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Load any saved user chat consultations on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("agrivani_chat_history_list");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setChatHistory(parsed);
+          }
+        } catch {}
+      }
+    }
+  }, []);
 
   // Turn off camera and release hardware sensor
   const stopCamera = () => {
@@ -182,6 +265,39 @@ export default function DetectionPage() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    const newHistoryItem: DiagnosticChatHistory = {
+      id: `chat-${Date.now()}`,
+      title: "Rice Leaf Blast Treatment",
+      cropName: "Rice (Paddy)",
+      diseaseName: "Rice Leaf Blast (Jhuka Rog)",
+      date: "Just now",
+      preview: "Tricyclazole 75% WP @ 120g/acre spray prescribed with neem oil combination.",
+      status: "Prescribed",
+      statusText: "Prescription Active",
+      image: payload.image,
+      remedies: payload.remedies,
+    };
+    const updatedHistory = [newHistoryItem, ...chatHistory];
+    setChatHistory(updatedHistory);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("agrivani_chat_history_list", JSON.stringify(updatedHistory));
+      localStorage.setItem("agrivani_detection_context", JSON.stringify(payload));
+    }
+    router.push("/chat?from=detection");
+  };
+
+  // Open Chat History Item
+  const handleOpenChatHistory = (item: DiagnosticChatHistory) => {
+    stopCamera();
+    const payload = {
+      image: item.image,
+      diseaseName: item.diseaseName,
+      description: item.preview,
+      remedies: item.remedies,
+      timestamp: item.date,
+      title: item.title,
+    };
     if (typeof window !== "undefined") {
       localStorage.setItem("agrivani_detection_context", JSON.stringify(payload));
     }
@@ -350,21 +466,100 @@ export default function DetectionPage() {
             )}
           </div>
 
-          {/* Tip Card (Shown when no picture has been captured yet) */}
+          {/* Tip Card and Chat History (Shown when no picture has been captured yet) */}
           {!capturedImage && (
-            <div className="bg-white rounded-2xl p-3.5 border border-gray-200/90 shadow-xs flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-50 text-[#144733] flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
-                <Lightbulb className="w-4 h-4 text-[#2D7A4D]" />
+            <>
+              <div className="bg-white rounded-2xl p-3.5 border border-gray-200/90 shadow-xs flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-50 text-[#144733] flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
+                  <Lightbulb className="w-4 h-4 text-[#2D7A4D]" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="text-xs font-semibold text-gray-900">
+                    Tip
+                  </h3>
+                  <p className="text-xs text-gray-600 font-normal leading-relaxed">
+                    This feature works offline. You can scan crop leaves and view remedies anytime without an internet connection.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-0.5">
-                <h3 className="text-xs font-semibold text-gray-900">
-                  Tip
-                </h3>
-                <p className="text-xs text-gray-600 font-normal leading-relaxed">
-                  This feature works offline. You can scan crop leaves and view remedies anytime without an internet connection.
-                </p>
+
+              {/* Clean Minimalist Previous Consultations Section */}
+              <div className="space-y-2.5 pt-1">
+                {/* Header */}
+                <div className="flex items-center justify-between px-1">
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-900 leading-tight">
+                      Chat History
+                    </h2>
+                    <p className="text-[11px] text-gray-500 font-normal">
+                      Recent crop diagnosis &amp; remedies
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/chat"
+                    onClick={stopCamera}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#144733] hover:text-[#0f3627] active:opacity-75 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>New Chat</span>
+                  </Link>
+                </div>
+
+                {/* Minimalist Native List Container */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs divide-y divide-gray-100 overflow-hidden">
+                  {chatHistory.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleOpenChatHistory(item)}
+                      className="w-full p-3.5 text-left hover:bg-gray-50/80 active:bg-gray-100/70 transition-colors group cursor-pointer"
+                    >
+                      {/* Top Row: Brief Title + Timestamp */}
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-[13.5px] font-semibold text-gray-900 truncate group-hover:text-[#144733] transition">
+                          {item.title}
+                        </h3>
+                        <span className="text-[11px] text-gray-400 font-normal shrink-0">
+                          {item.date}
+                        </span>
+                      </div>
+
+                      {/* Middle Row: Crop & Brief Chat Summary */}
+                      <p className="text-xs text-gray-600 font-normal leading-relaxed line-clamp-2 mt-1">
+                        <span className="font-medium text-emerald-800 mr-1">{item.cropName}:</span>
+                        {item.preview}
+                      </p>
+
+                      {/* Bottom Row: Status Tag + Subtle Chevron */}
+                      <div className="flex items-center justify-between mt-2.5 pt-0.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-[10.5px] font-medium px-2 py-0.5 rounded-full border ${
+                            item.status === "Prescribed"
+                              ? "bg-amber-50 text-amber-800 border-amber-200/80"
+                              : item.status === "Follow-up"
+                              ? "bg-blue-50 text-blue-800 border-blue-200/80"
+                              : "bg-emerald-50 text-emerald-800 border-emerald-200/80"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              item.status === "Prescribed"
+                                ? "bg-amber-500"
+                                : item.status === "Follow-up"
+                                ? "bg-blue-500"
+                                : "bg-emerald-500"
+                            }`}
+                          />
+                          {item.statusText || item.status}
+                        </span>
+
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#144733] group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Details Section: Shown below the image after capture */}
