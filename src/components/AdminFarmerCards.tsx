@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Search,
   Wheat,
-  Camera,
   Layers,
 } from "lucide-react";
 import { FARMERS_DATA } from "@/data/farmers";
@@ -92,26 +91,6 @@ export default function AdminFarmerCards() {
               href={`/admin/farmers/${farmer.id}`}
               className="block bg-white rounded-2xl border border-gray-200 shadow-xs hover:shadow-md hover:border-[#144733] transition-all duration-200 overflow-hidden group focus:outline-none cursor-pointer"
             >
-              {/* Vertical Card Structure:
-                  1. Blank Picture Area (Top)
-                  2. Farmer Details & Meta (Bottom)
-              */}
-              
-              {/* Blank Picture Area */}
-              <div className="w-full h-36 sm:h-40 bg-[#F4F6F2] border-b border-gray-150 flex flex-col items-center justify-center relative overflow-hidden group-hover:bg-[#EBF0E6] transition-colors">
-                <div className="w-16 h-16 rounded-full bg-white border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 group-hover:border-[#144733]/40 group-hover:text-[#144733] transition-colors shadow-2xs">
-                  <Camera className="w-6 h-6 stroke-[1.7]" />
-                </div>
-                <span className="text-[11px] font-medium text-gray-400 mt-1.5 tracking-wide group-hover:text-gray-600 transition-colors">
-                  Farmer Photo
-                </span>
-
-                {/* Total Area Pill (Floating Top-Right) */}
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-[#144733] border border-gray-200 shadow-2xs">
-                  {farmer.totalArea}
-                </div>
-              </div>
-
               {/* Farmer Info Body */}
               <div className="p-4 sm:p-5 space-y-3">
                 {/* Farmer Name & Arrow */}
@@ -128,8 +107,13 @@ export default function AdminFarmerCards() {
                     </div>
                   </div>
 
-                  <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-[#144733] text-gray-600 group-hover:text-white flex items-center justify-center transition-colors shrink-0 shadow-2xs">
-                    <ChevronRight className="w-4 h-4" />
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#144733]/10 text-[#144733] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#144733]/20">
+                      {farmer.totalArea}
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-[#144733] text-gray-600 group-hover:text-white flex items-center justify-center transition-colors shrink-0 shadow-2xs">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
 

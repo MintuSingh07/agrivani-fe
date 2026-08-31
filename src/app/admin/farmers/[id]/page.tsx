@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Wheat,
   Layers,
-  Camera,
   Copy,
   Check,
   User,
@@ -81,35 +80,22 @@ export default function AdminFarmerDetailPage({ params }: PageProps) {
         {/* Farmer Details Content Body */}
         <div className="p-4 sm:p-5 space-y-4 flex-1">
           
-          {/* 1. Blank Picture Area & Core Identity Box */}
+          {/* 1. Core Identity Box */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
-            {/* Blank Picture Area */}
-            <div className="w-full h-48 sm:h-56 bg-[#F4F6F2] border-b border-gray-200 flex flex-col items-center justify-center relative">
-              <div className="w-20 h-20 rounded-full bg-white border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 shadow-xs">
-                <Camera className="w-8 h-8 stroke-[1.5]" />
-              </div>
-              <p className="text-xs font-semibold text-gray-500 mt-2">
-                Farmer Picture Area
-              </p>
-              <span className="text-[10px] text-gray-400">
-                (Blank placeholder for uploaded photograph)
-              </span>
-
-              {/* Status Badge */}
-              <div className="absolute top-3 right-3 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs">
-                Verified Farmer
-              </div>
-            </div>
-
             {/* Farmer Name & Contact Bar */}
             <div className="p-4 sm:p-5 space-y-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                  {farmer.name}
-                </h2>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">
-                  Farming Experience: <strong>{farmer.experienceYears} Years</strong>
-                </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+                    {farmer.name}
+                  </h2>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">
+                    Farming Experience: <strong>{farmer.experienceYears} Years</strong>
+                  </p>
+                </div>
+                <div className="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs shrink-0">
+                  Verified Farmer
+                </div>
               </div>
 
               {/* Quick Actions Row: Phone & Direct Call */}

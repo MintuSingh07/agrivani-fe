@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Assistant } from "next/font/google";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 import BottomNavigation from "@/components/BottomNavigation";
 import { LanguageProvider } from "@/context/LanguageContext";
 
