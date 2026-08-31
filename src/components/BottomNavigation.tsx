@@ -18,7 +18,7 @@ export default function BottomNavigation() {
   const { t } = useLanguage();
 
   const navItems: NavItem[] = [
-    { name: t.navHome, href: "/", icon: Home },
+    { name: t.navHome, href: "/home", icon: Home },
     { name: t.navDetect, href: "/detection", icon: Sprout },
     { name: t.navLearn, href: "/learn", icon: BookOpen },
     { name: t.navProfile, href: "/profile", icon: User },
@@ -26,11 +26,11 @@ export default function BottomNavigation() {
 
   // Helper to map pathname to index
   const getIndexFromPath = (path: string | null) => {
-    if (!path || path === "/") return 0;
+    if (!path || path === "/" || path === "/home") return 0;
     if (path.startsWith("/detection")) return 1;
     if (path.startsWith("/learn")) return 2;
     if (path.startsWith("/profile")) return 3;
-    if (path.startsWith("/alerts")) return 0;
+    if (path.startsWith("/alerts") || path.startsWith("/crops")) return 0;
     return 0;
   };
 
@@ -89,11 +89,14 @@ export default function BottomNavigation() {
     router.push(href);
   };
 
-  // Hide bottom navbar on full-page forms (chat, onboarding, get-started, auth, crop add, and admin suite)
+  // Hide bottom navbar on full-page forms (root router, chat, onboarding, get-started, splash, auth, crop add, and admin suite)
   if (
+    !pathname ||
+    pathname === "/" ||
     pathname?.startsWith("/chat") ||
     pathname?.startsWith("/onboarding") ||
     pathname?.startsWith("/get-started") ||
+    pathname?.startsWith("/splash") ||
     pathname?.startsWith("/auth") ||
     pathname?.startsWith("/crops/add") ||
     pathname?.startsWith("/admin")

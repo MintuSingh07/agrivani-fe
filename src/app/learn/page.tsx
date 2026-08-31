@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Search,
   BookOpen,
@@ -20,9 +21,19 @@ import { useLanguage } from "@/context/LanguageContext";
 import BottomNavigation from "@/components/BottomNavigation";
 
 export default function LearnPage() {
+  const router = useRouter();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"videos" | "courses" | "articles">("videos");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth");
+      }
+    }
+  }, [router]);
 
   const videoTutorials = [
     {
@@ -90,7 +101,7 @@ export default function LearnPage() {
         <header className="px-4 py-3 bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition"
             >
               <ArrowLeft className="w-5 h-5" />

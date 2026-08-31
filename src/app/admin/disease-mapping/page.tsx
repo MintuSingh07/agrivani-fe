@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Activity } from "lucide-react";
 
 // Dynamically import DiseaseHeatMap without SSR for clean client-side Leaflet rendering
@@ -21,6 +23,22 @@ const DiseaseHeatMap = dynamic(() => import("@/components/DiseaseHeatMap"), {
 });
 
 export default function AdminDiseaseMappingPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (!isLoggedIn) {
+        router.replace("/auth?role=officer");
+        return;
+      }
+      if (userRole === "farmer") {
+        router.replace("/detection");
+        return;
+      }
+    }
+  }, [router]);
   return (
     <div className="min-h-screen bg-slate-900/10 flex justify-center py-0 sm:py-6 px-0 sm:px-4 font-sans">
       {/* Mobile / Tablet / Desktop Responsive Centered App Shell */}

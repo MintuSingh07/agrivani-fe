@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   User,
@@ -25,14 +26,15 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { t, currentLanguageInfo } = useLanguage();
   const [selectedLanguageName, setSelectedLanguageName] = useState("English / हिन्दी");
   const [showHelplineModal, setShowHelplineModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [farmerProfile, setFarmerProfile] = useState({
-    name: "Zara Patel",
+    name: "Farmer",
     phone: "+91 98765 43210",
-    location: "Sawojajar, East Java",
+    location: "Purba Bardhaman, West Bengal",
     crops: ["Rice (Paddy)", "Wheat"],
     farmSize: "4.5",
     farmUnit: "Acres",
@@ -41,6 +43,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (!isLoggedIn) {
+        router.replace("/auth");
+        return;
+      }
+      if (userRole === "officer" || userRole === "admin") {
+        router.replace("/admin/profile");
+        return;
+      }
+
       const savedLangName = localStorage.getItem("agrivani_app_language_name");
       if (savedLangName) {
         setSelectedLanguageName(savedLangName);
@@ -54,7 +67,18 @@ export default function ProfilePage() {
         } catch {}
       }
     }
-  }, [currentLanguageInfo]);
+  }, [currentLanguageInfo, router]);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("agrivani_is_logged_in");
+      localStorage.removeItem("agrivani_user_role");
+      localStorage.removeItem("agrivani_farmer_name");
+      localStorage.removeItem("agrivani_farmer_profile");
+      localStorage.removeItem("agrivani_logged_in_user");
+    }
+    router.push("/auth");
+  };
 
   const handleCopyNumber = (num: string) => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -72,7 +96,7 @@ export default function ProfilePage() {
         <header className="px-4 py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -231,13 +255,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Logout Button */}
-          <Link
-            href="/auth"
+          <button
+            onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 py-3 rounded-2xl text-xs font-semibold border border-red-200 transition active:scale-98 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>{t.logOutBtn}</span>
-          </Link>
+          </button>
 
         </div>
 

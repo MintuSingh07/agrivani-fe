@@ -32,6 +32,11 @@ function CropDetailsContent() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth");
+        return;
+      }
       const saved = localStorage.getItem("agrivani_farmer_crops_detailed");
       if (saved) {
         try {
@@ -75,7 +80,7 @@ function CropDetailsContent() {
         } catch {}
       }
     }
-    router.push("/");
+    router.push("/home");
   };
 
   if (!crop) {
@@ -90,7 +95,7 @@ function CropDetailsContent() {
             <p className="text-xs text-gray-500 mt-1">Please select an existing crop or add a new one.</p>
           </div>
           <Link
-            href="/"
+            href="/home"
             className="bg-[#144733] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs"
           >
             Return to Dashboard
@@ -111,7 +116,7 @@ function CropDetailsContent() {
         <header className="px-4 py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Bot,
@@ -122,6 +122,7 @@ function ChatContent() {
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const router = useRouter();
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
 
@@ -141,8 +142,16 @@ function ChatContent() {
     t.quickQueryFertilizer,
   ];
 
-  // Initialize Chat (Check if coming from Detection or fresh)
+  // Check auth & initialize Chat (Check if coming from Detection or fresh)
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth");
+        return;
+      }
+    }
+
     const fromDetection = searchParams?.get("from") === "detection";
     const savedDetection = typeof window !== "undefined" ? localStorage.getItem("agrivani_detection_context") : null;
 

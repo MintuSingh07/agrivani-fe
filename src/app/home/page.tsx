@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WeatherCard from "@/components/WeatherCard";
-import AdminFarmerCards from "@/components/AdminFarmerCards";
+import WeatherForecastStrip from "@/components/WeatherForecastStrip";
+import DiseaseAlertStrip from "@/components/DiseaseAlertStrip";
+import HomeCropTracker from "@/components/HomeCropTracker";
 
-export default function AdminHomePage() {
+export default function FarmerHomePage() {
   const router = useRouter();
-  const [userName, setUserName] = useState("Officer");
+  const [userName, setUserName] = useState("Farmer");
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
@@ -20,27 +22,23 @@ export default function AdminHomePage() {
         if (!hasOnboarded) {
           router.replace("/get-started");
         } else {
-          router.replace("/auth?role=officer");
+          router.replace("/auth");
         }
         return;
       }
 
-      if (userRole === "farmer") {
-        router.replace("/home");
+      if (userRole === "officer" || userRole === "admin") {
+        router.replace("/admin");
         return;
       }
 
       setIsAuthorized(true);
 
-      const savedName =
-        localStorage.getItem("agrivani_officer_name") ||
-        localStorage.getItem("agrivani_admin_name");
+      const savedName = localStorage.getItem("agrivani_farmer_name");
       if (savedName) {
         setUserName(savedName);
       } else {
-        const savedProfile =
-          localStorage.getItem("agrivani_officer_profile") ||
-          localStorage.getItem("agrivani_admin_profile");
+        const savedProfile = localStorage.getItem("agrivani_farmer_profile");
         if (savedProfile) {
           try {
             const parsed = JSON.parse(savedProfile);
@@ -61,11 +59,11 @@ export default function AdminHomePage() {
 
   return (
     <div className="min-h-screen bg-slate-900/10 flex justify-center py-0 sm:py-6 px-0 sm:px-4 font-sans">
-      {/* Mobile / Tablet / Desktop Responsive Centered App Shell */}
-      <main className="w-full max-w-md md:max-w-xl lg:max-w-2xl bg-[#FDFFF1] min-h-screen flex flex-col relative pb-32 shadow-2xl overflow-hidden sm:rounded-3xl border-0 sm:border sm:border-gray-200">
-        
-        {/* 1. Scenic Weather & Status Header Card (Matching Visual Design) */}
-        <section id="admin-weather" className="w-full m-0 p-0">
+      {/* Mobile/Tablet Centered App Frame Container */}
+      <main className="w-full max-w-md md:max-w-xl bg-[#FDFFF1] min-h-screen flex flex-col relative pb-32 shadow-2xl overflow-hidden sm:rounded-3xl border-0 sm:border sm:border-gray-200">
+
+        {/* 1. Full Half-Screen Weather Report Header */}
+        <section id="weather" className="w-full m-0 p-0">
           <WeatherCard
             userName={userName}
             temperature="26°C"
@@ -77,9 +75,27 @@ export default function AdminHomePage() {
           />
         </section>
 
-        {/* 2. Admin Content Area with Expandable Farmer Cards */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col">
-          <AdminFarmerCards />
+        {/* Main Dashboard Cards Container */}
+        <div className="p-4 space-y-4 flex-1">
+
+          {/* 2. 7-Day Weather Forecast Strip */}
+          <section id="forecast">
+            <WeatherForecastStrip />
+          </section>
+
+          {/* 3. Weather-Correlated Pest / Fungus Outbreak Warning Banner */}
+          <section id="disease-alert">
+            <DiseaseAlertStrip
+              diseaseName="Leaf Blast Fungus"
+              targetHref="/alerts/leaf-blast"
+            />
+          </section>
+
+          {/* 4. Registered Crops & Farm Tracker Section with Add Crop Feature (Under Warning Banner) */}
+          <section id="crops-tracker">
+            <HomeCropTracker />
+          </section>
+
         </div>
       </main>
     </div>

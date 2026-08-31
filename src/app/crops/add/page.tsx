@@ -208,6 +208,15 @@ export default function AddCropPage() {
   const [irrigation, setIrrigation] = useState("Canal & Borewell");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth");
+      }
+    }
+  }, [router]);
+
   // Filter Catalog
   const filteredCatalog = useMemo(() => {
     return CROP_CATALOG.filter((item) => {
@@ -306,7 +315,7 @@ export default function AddCropPage() {
     }
 
     setTimeout(() => {
-      router.push("/");
+      router.push("/home");
     }, 250);
   };
 
@@ -325,7 +334,7 @@ export default function AddCropPage() {
         <header className="px-4 py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />

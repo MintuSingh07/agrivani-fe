@@ -701,6 +701,20 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (isLoggedIn) {
+        if (userRole === "officer" || userRole === "admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/home");
+        }
+        return;
+      }
+
+      // Mark that user has visited auth/onboarding flow
+      localStorage.setItem("agrivani_onboarded", "true");
+
       const savedLang = localStorage.getItem("agrivani_app_language") as SupportedLanguage;
       if (savedLang && translations[savedLang]) {
         setLanguage(savedLang);
@@ -710,7 +724,7 @@ export default function AuthPage() {
         setRole("officer");
       }
     }
-  }, []);
+  }, [router]);
 
   // Keep `otp` in sync with `otpDigits`
   useEffect(() => {
@@ -836,7 +850,9 @@ export default function AuthPage() {
       const farmerName = fullName.trim() || (mobile ? `Farmer ${mobile.slice(-4)}` : "Zara Patel");
       
       if (typeof window !== "undefined") {
+        localStorage.setItem("agrivani_is_logged_in", "true");
         localStorage.setItem("agrivani_user_role", "farmer");
+        localStorage.setItem("agrivani_onboarded", "true");
         localStorage.setItem("agrivani_farmer_name", farmerName);
         
         const existingProfile = localStorage.getItem("agrivani_farmer_profile");
@@ -853,7 +869,7 @@ export default function AuthPage() {
       }
 
       // Redirect to Farmer Home
-      router.push("/");
+      router.push("/home");
     } else {
       // Officer Authentication
       if (activeTab === 'signin') {
@@ -891,7 +907,9 @@ export default function AuthPage() {
       };
 
       if (typeof window !== "undefined") {
+        localStorage.setItem("agrivani_is_logged_in", "true");
         localStorage.setItem("agrivani_user_role", "officer");
+        localStorage.setItem("agrivani_onboarded", "true");
         localStorage.setItem("agrivani_officer_name", officerDisplayName);
         localStorage.setItem("agrivani_admin_name", officerDisplayName);
         localStorage.setItem("agrivani_officer_profile", JSON.stringify(officerData));

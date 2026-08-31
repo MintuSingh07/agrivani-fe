@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Sprout, Droplets, ShieldCheck, ChevronRight } from "lucide-react";
 import { CropDetail, getCropVisual } from "@/components/HomeCropTracker";
 import { useLanguage } from "@/context/LanguageContext";
@@ -36,12 +37,18 @@ const DEFAULT_CROPS: CropDetail[] = [
 ];
 
 export default function CropsOverviewPage() {
+  const router = useRouter();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<CropDetail[]>(DEFAULT_CROPS);
   const [activeTab, setActiveTab] = useState<"current" | "past">("current");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth");
+        return;
+      }
       const saved = localStorage.getItem("agrivani_farmer_crops_detailed");
       if (saved) {
         try {
@@ -52,7 +59,7 @@ export default function CropsOverviewPage() {
         } catch {}
       }
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-slate-900/10 flex justify-center py-0 sm:py-6 px-0 sm:px-4 font-sans">
@@ -62,7 +69,7 @@ export default function CropsOverviewPage() {
         <header className="px-4 py-3.5 bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 active:scale-95 transition cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />

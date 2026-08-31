@@ -34,11 +34,21 @@ export default function WeatherCard({
   const [currentTime, setCurrentTime] = useState("");
   const [currentLocation, setCurrentLocation] = useState(location);
   const [isNight, setIsNight] = useState(false);
+  const [profileHref, setProfileHref] = useState("/profile");
 
   const displayCondition = condition || (isNight ? "Clear Night" : t.sunnyDay);
 
   // 1. Dynamic local time & greeting calculation (Updates live every second)
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const role = localStorage.getItem("agrivani_user_role");
+      if (role === "officer" || role === "admin") {
+        setProfileHref("/admin/profile");
+      } else {
+        setProfileHref("/profile");
+      }
+    }
+
     const updateTimeAndGreeting = () => {
       const now = new Date();
       const hour = now.getHours();
@@ -167,9 +177,9 @@ export default function WeatherCard({
             </div>
           </div>
 
-          {/* Right-Pointed Arrow Button linking to Farmer Profile */}
+          {/* Right-Pointed Arrow Button linking to Profile */}
           <Link
-            href="/profile"
+            href={profileHref}
             aria-label="View Profile"
             className="w-9 h-9 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center border border-white/25 text-white hover:bg-black/45 transition-all active:scale-95 shrink-0 ml-2 shadow-sm cursor-pointer"
           >

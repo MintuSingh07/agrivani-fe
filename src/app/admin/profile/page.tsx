@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   User,
@@ -18,6 +19,7 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminProfilePage() {
+  const router = useRouter();
   const { t, currentLanguageInfo } = useLanguage();
   const [selectedLanguageName, setSelectedLanguageName] = useState("English / हिन्दी");
   const [showEditModal, setShowEditModal] = useState(false);
@@ -37,6 +39,17 @@ export default function AdminProfilePage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (!isLoggedIn) {
+        router.replace("/auth?role=officer");
+        return;
+      }
+      if (userRole === "farmer") {
+        router.replace("/profile");
+        return;
+      }
+
       const savedLang = localStorage.getItem("agrivani_app_language_name");
       if (savedLang) {
         setSelectedLanguageName(savedLang);
@@ -53,7 +66,20 @@ export default function AdminProfilePage() {
         } catch {}
       }
     }
-  }, []);
+  }, [currentLanguageInfo, router]);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("agrivani_is_logged_in");
+      localStorage.removeItem("agrivani_user_role");
+      localStorage.removeItem("agrivani_officer_name");
+      localStorage.removeItem("agrivani_admin_name");
+      localStorage.removeItem("agrivani_officer_profile");
+      localStorage.removeItem("agrivani_admin_profile");
+      localStorage.removeItem("agrivani_logged_in_user");
+    }
+    router.push("/auth?role=officer");
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,13 +226,13 @@ export default function AdminProfilePage() {
           </div>
 
           {/* Logout Button */}
-          <Link
-            href="/auth"
+          <button
+            onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 py-3 rounded-2xl text-xs font-semibold border border-red-200 transition active:scale-98 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>{t.logOutBtn}</span>
-          </Link>
+          </button>
         </div>
 
         {/* Edit Profile Modal */}

@@ -1,11 +1,25 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SplashScreen from "@/components/SplashScreen";
 
 export default function GetStartedPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (isLoggedIn) {
+        if (userRole === "officer" || userRole === "admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/home");
+        }
+      }
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen w-full bg-[#2C302E] flex items-center justify-center p-0 sm:p-6 md:p-8">

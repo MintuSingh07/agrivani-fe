@@ -102,9 +102,20 @@ export default function DetectionPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Load any saved user chat consultations on mount
+  // Check authentication & load any saved user chat consultations on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (!isLoggedIn) {
+        router.replace("/auth");
+        return;
+      }
+      if (userRole === "officer" || userRole === "admin") {
+        router.replace("/admin/disease-mapping");
+        return;
+      }
+
       const saved = localStorage.getItem("agrivani_chat_history_list");
       if (saved) {
         try {
@@ -115,7 +126,7 @@ export default function DetectionPage() {
         } catch {}
       }
     }
-  }, []);
+  }, [router]);
 
   // Turn off camera and release hardware sensor
   const stopCamera = () => {

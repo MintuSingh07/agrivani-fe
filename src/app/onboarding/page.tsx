@@ -10,13 +10,31 @@ import OnboardingWeatherScreen from "@/components/OnboardingWeatherScreen";
 import SplashScreen from "@/components/SplashScreen";
 
 export default function OnboardingPage() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const router = useRouter();
 
+  // Redirect if user is already logged in
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("agrivani_is_logged_in") === "true";
+      const userRole = localStorage.getItem("agrivani_user_role");
+      if (isLoggedIn) {
+        if (userRole === "officer" || userRole === "admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/home");
+        }
+      }
+    }
+  }, [router]);
+
   const handleFinish = () => {
-    router.push("/");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("agrivani_onboarded", "true");
+    }
+    router.push("/auth");
   };
 
   const goToStep = (step: number) => {
